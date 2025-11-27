@@ -25,7 +25,6 @@ public class EmailService {
 
             mailSender.send(simpleMailMessage);
         } catch (Exception e) {
-            // Em produção, use um Logger. Aqui usamos print para debug.
             System.out.println("ERRO AO ENVIAR E-MAIL: " + e.getMessage());
         }
     }
