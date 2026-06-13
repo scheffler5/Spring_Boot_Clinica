@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.controller.medicalrecorder;
 
-import com.learn.projeto_learn.Domain.medicalrecord.Prontuario;
+import com.learn.projeto_learn.model.medicalrecord.Prontuario;
 import com.learn.projeto_learn.dto.medicalrecord.ProntuarioRequestDTO;
 import com.learn.projeto_learn.service.medicalrecord.ProntuarioService;
 import jakarta.validation.Valid;

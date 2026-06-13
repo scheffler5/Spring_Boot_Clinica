@@ -1,6 +1,6 @@
-package com.learn.projeto_learn.Domain.User;
+package com.learn.projeto_learn.model.User;
 
-import com.learn.projeto_learn.Domain.User.UserRole;
+import com.learn.projeto_learn.model.User.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;

@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.service.Paciente;
 
-import com.learn.projeto_learn.Domain.patient.Paciente;
+import com.learn.projeto_learn.model.patient.Paciente;
 import com.learn.projeto_learn.dto.paciente.PatientRequestDTO;
 import com.learn.projeto_learn.dto.paciente.PatientResponseDTO;
 import com.learn.projeto_learn.repository.PacienteRepository;

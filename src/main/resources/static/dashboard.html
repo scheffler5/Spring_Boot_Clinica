@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clínica - Painel</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+    <h1>🏥 Clínica - Painel</h1>
+    <button id="btn-logout" class="btn-logout">Sair</button>
+</header>
+
+<main class="dashboard">
+    <div id="message" class="message hidden card full"></div>
+
+    <!-- CADASTRO DE PACIENTE -->
+    <section class="card">
+        <h2>Novo paciente</h2>
+        <form id="form-patient">
+            <label for="pat-nome">Nome</label>
+            <input id="pat-nome" type="text" required>
+
+            <label for="pat-cpf">CPF (somente números)</label>
+            <input id="pat-cpf" type="text" required maxlength="11" pattern="\d{11}">
+
+            <label for="pat-nascimento">Data de nascimento</label>
+            <input id="pat-nascimento" type="date" required>
+
+            <label for="pat-mae">Nome da mãe</label>
+            <input id="pat-mae" type="text">
+
+            <label for="pat-pai">Nome do pai</label>
+            <input id="pat-pai" type="text">
+
+            <button type="submit" class="btn-primary">Cadastrar paciente</button>
+        </form>
+    </section>
+
+    <!-- NOVO AGENDAMENTO -->
+    <section class="card">
+        <h2>Novo agendamento</h2>
+        <form id="form-appointment">
+            <label for="app-paciente">Paciente</label>
+            <select id="app-paciente" required>
+                <option value="">Carregando...</option>
+            </select>
+
+            <label for="app-datahora">Data e hora</label>
+            <input id="app-datahora" type="datetime-local" required>
+
+            <button type="submit" class="btn-primary">Agendar</button>
+        </form>
+    </section>
+
+    <!-- LISTA DE PACIENTES -->
+    <section class="card full">
+        <h2>Pacientes</h2>
+        <div class="search-row">
+            <input id="search-input" type="text" placeholder="Buscar por nome...">
+            <button id="btn-search">Buscar</button>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>ID</th>
+            </tr>
+            </thead>
+            <tbody id="patients-body">
+            <tr><td colspan="3">Carregando...</td></tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

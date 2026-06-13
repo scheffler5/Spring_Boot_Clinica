@@ -1,4 +1,4 @@
-package com.learn.projeto_learn.Domain.User;
+package com.learn.projeto_learn.model.User;
 
 public enum UserRole {
     ADMIN("admin"),

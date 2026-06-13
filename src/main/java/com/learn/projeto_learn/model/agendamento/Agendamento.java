@@ -1,5 +1,5 @@
-package com.learn.projeto_learn.Domain.agendamento;
-import com.learn.projeto_learn.Domain.patient.Paciente;
+package com.learn.projeto_learn.model.agendamento;
+import com.learn.projeto_learn.model.patient.Paciente;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

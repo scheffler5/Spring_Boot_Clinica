@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.dto.Login;
 
-import com.learn.projeto_learn.Domain.User.Usuario;
+import com.learn.projeto_learn.model.User.Usuario;
 
 import java.util.UUID;
 

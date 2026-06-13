@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.repository;
 
-import com.learn.projeto_learn.Domain.User.Usuario;
+import com.learn.projeto_learn.model.User.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 

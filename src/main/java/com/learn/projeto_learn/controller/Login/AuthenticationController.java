@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.controller.Login;
 
-import com.learn.projeto_learn.Domain.User.Usuario;
+import com.learn.projeto_learn.model.User.Usuario;
 import com.learn.projeto_learn.dto.Login.*;
 import com.learn.projeto_learn.repository.UsuarioRepository;
 import com.learn.projeto_learn.service.Login.AuthorizationService;

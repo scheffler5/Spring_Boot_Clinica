@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.controller.agendamento;
 
-import com.learn.projeto_learn.Domain.agendamento.Agendamento;
+import com.learn.projeto_learn.model.agendamento.Agendamento;
 import com.learn.projeto_learn.dto.agendamento.AppointmentRequestDTO;
 import com.learn.projeto_learn.service.Agendamento.AgendamentoService;
 import jakarta.validation.Valid;

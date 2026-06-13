@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.service.Login; // Confirme se o pacote está certo
 
-import com.learn.projeto_learn.Domain.User.Usuario;
+import com.learn.projeto_learn.model.User.Usuario;
 import com.learn.projeto_learn.repository.UsuarioRepository; // Import do seu Repository
 import com.learn.projeto_learn.service.EmailService;
 import jakarta.transaction.Transactional;

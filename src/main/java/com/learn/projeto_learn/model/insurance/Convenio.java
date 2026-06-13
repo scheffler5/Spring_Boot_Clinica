@@ -1,38 +1,31 @@
-package com.learn.projeto_learn.Domain.patient;
+package com.learn.projeto_learn.model.insurance;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Table(name = "tb_patients")
-@Entity(name = "patients")
+@Table(name = "tb_convenios")
+@Entity(name = "convenios")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
-public class Paciente {
+public class Convenio {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private String nome;
-
     @Column(nullable = false, unique = true)
-    private String cpf;
-
+    private String nome;
     @Column(nullable = false)
-    private LocalDate dataNascimento;
-
-    private String nomeMae;
-    private String nomePai;
+    private BigDecimal desconto;
 
     @Column(nullable = false)
     private Boolean ativo = true;
@@ -42,11 +35,4 @@ public class Paciente {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    public Paciente(String nome, String cpf, LocalDate dataNascimento) {
-        this.nome = nome;
-        this.cpf = cpf;
-        this.dataNascimento = dataNascimento;
-        this.ativo = true;
-    }
 }

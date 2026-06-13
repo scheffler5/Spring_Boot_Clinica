@@ -1,10 +1,10 @@
 package com.learn.projeto_learn.service.medicalrecord;
 
-import com.learn.projeto_learn.Domain.User.Usuario;
-import com.learn.projeto_learn.Domain.insurance.Convenio;
-import com.learn.projeto_learn.Domain.medicalrecord.Prontuario;
-import com.learn.projeto_learn.Domain.patient.Paciente;
-import com.learn.projeto_learn.Domain.procedure.Procedimento;
+import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.model.insurance.Convenio;
+import com.learn.projeto_learn.model.medicalrecord.Prontuario;
+import com.learn.projeto_learn.model.patient.Paciente;
+import com.learn.projeto_learn.model.procedure.Procedimento;
 import com.learn.projeto_learn.dto.medicalrecord.ProntuarioRequestDTO;
 import com.learn.projeto_learn.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,7 +1,7 @@
 package com.learn.projeto_learn.service.Agendamento;
 
-import com.learn.projeto_learn.Domain.agendamento.Agendamento;
-import com.learn.projeto_learn.Domain.patient.Paciente;
+import com.learn.projeto_learn.model.agendamento.Agendamento;
+import com.learn.projeto_learn.model.patient.Paciente;
 import com.learn.projeto_learn.dto.agendamento.AppointmentRequestDTO;
 import com.learn.projeto_learn.repository.AgendamentoRepository;
 import com.learn.projeto_learn.repository.PacienteRepository;

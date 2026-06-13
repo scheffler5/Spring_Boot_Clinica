@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clínica - Login</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main class="auth-container">
+    <div class="auth-card">
+        <h1>🏥 Clínica</h1>
+
+        <nav class="tabs">
+            <button class="tab active" data-tab="login">Entrar</button>
+            <button class="tab" data-tab="register">Cadastrar</button>
+            <button class="tab" data-tab="recovery">Recuperar senha</button>
+        </nav>
+
+        <div id="message" class="message hidden"></div>
+
+        <!-- LOGIN -->
+        <form id="form-login" class="tab-content">
+            <label for="login-user">Login</label>
+            <input id="login-user" type="text" required autocomplete="username">
+
+            <label for="login-pass">Senha</label>
+            <input id="login-pass" type="password" required autocomplete="current-password">
+
+            <button type="submit" class="btn-primary">Entrar</button>
+        </form>
+
+        <!-- CADASTRO -->
+        <form id="form-register" class="tab-content hidden">
+            <label for="reg-user">Login</label>
+            <input id="reg-user" type="text" required>
+
+            <label for="reg-email">E-mail</label>
+            <input id="reg-email" type="email" required>
+
+            <label for="reg-pass">Senha</label>
+            <input id="reg-pass" type="password" required>
+
+            <label for="reg-role">Função</label>
+            <select id="reg-role" required>
+                <option value="RECEPCIONIST">Recepcionista</option>
+                <option value="MEDIC">Médico</option>
+                <option value="ADMIN">Administrador</option>
+            </select>
+
+            <button type="submit" class="btn-primary">Cadastrar</button>
+        </form>
+
+        <!-- RECUPERAÇÃO DE SENHA -->
+        <div id="form-recovery-wrapper" class="tab-content hidden">
+            <form id="form-recovery-request" class="recovery-step">
+                <label for="rec-email">E-mail cadastrado</label>
+                <input id="rec-email" type="email" required>
+                <button type="submit" class="btn-primary">Enviar código</button>
+            </form>
+
+            <form id="form-recovery-validate" class="recovery-step hidden">
+                <label for="rec-code">Código recebido por e-mail</label>
+                <input id="rec-code" type="text" required>
+                <button type="submit" class="btn-primary">Validar código</button>
+            </form>
+
+            <form id="form-recovery-change" class="recovery-step hidden">
+                <label for="rec-newpass">Nova senha</label>
+                <input id="rec-newpass" type="password" required>
+                <button type="submit" class="btn-primary">Alterar senha</button>
+            </form>
+        </div>
+    </div>
+</main>
+<script src="js/auth.js"></script>
+</body>
+</html>

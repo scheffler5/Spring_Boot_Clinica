@@ -1,9 +1,9 @@
-package com.learn.projeto_learn.Domain.medicalrecord;
+package com.learn.projeto_learn.model.medicalrecord;
 
-import com.learn.projeto_learn.Domain.User.Usuario;
-import com.learn.projeto_learn.Domain.insurance.Convenio;
-import com.learn.projeto_learn.Domain.patient.Paciente;
-import com.learn.projeto_learn.Domain.procedure.Procedimento;
+import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.model.insurance.Convenio;
+import com.learn.projeto_learn.model.patient.Paciente;
+import com.learn.projeto_learn.model.procedure.Procedimento;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

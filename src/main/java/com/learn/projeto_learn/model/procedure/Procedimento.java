@@ -1,21 +1,22 @@
-package com.learn.projeto_learn.Domain.location;
+package com.learn.projeto_learn.model.procedure;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Table(name = "tb_locais")
-@Entity(name = "locais")
+@Table(name = "tb_procedimentos")
+@Entity(name = "procedimentos")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
-public class Local {
+public class Procedimento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -23,6 +24,10 @@ public class Local {
 
     @Column(nullable = false)
     private String descricao;
+
+    @Column(nullable = false)
+    private BigDecimal custo;
+
     @Column(nullable = false)
     private Boolean ativo = true;
 

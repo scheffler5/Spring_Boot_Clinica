@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.repository;
 
-import com.learn.projeto_learn.Domain.location.Local;
+import com.learn.projeto_learn.model.location.Local;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

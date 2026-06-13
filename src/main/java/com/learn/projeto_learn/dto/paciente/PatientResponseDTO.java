@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.dto.paciente;
 
-import com.learn.projeto_learn.Domain.patient.Paciente;
+import com.learn.projeto_learn.model.patient.Paciente;
 
 import java.util.UUID;
 
