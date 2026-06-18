@@ -1,6 +1,7 @@
 package com.learn.projeto_learn.repository;
 
 import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.model.patient.Paciente;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -11,4 +12,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     UserDetails findByLogin(String login);
     boolean existsByEmail(String email);
     Optional<Usuario> findByEmail(String email);
+    boolean existsByPaciente(Paciente paciente);
+    Optional<Usuario> findByPaciente(Paciente paciente);
 }

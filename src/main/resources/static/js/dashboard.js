@@ -1,7 +1,6 @@
 const API = "";
 const token = localStorage.getItem("token");
 
-// Sem token, volta para o login
 if (!token) {
     window.location.href = "index.html";
 }
@@ -14,7 +13,6 @@ function showMessage(text, type) {
     setTimeout(() => (messageBox.className = "message hidden"), 5000);
 }
 
-// fetch com o token JWT; redireciona ao login se a sessão expirou
 async function apiFetch(path, options = {}) {
     const res = await fetch(API + path, {
         ...options,
@@ -34,13 +32,11 @@ async function apiFetch(path, options = {}) {
     return res;
 }
 
-// ---------- Logout ----------
 document.getElementById("btn-logout").addEventListener("click", () => {
     localStorage.removeItem("token");
     window.location.href = "index.html";
 });
 
-// ---------- Pacientes ----------
 async function loadPatients(search = "") {
     const query = search ? `?search=${encodeURIComponent(search)}` : "";
     const res = await apiFetch(`/patients${query}`);
@@ -92,7 +88,6 @@ document.getElementById("form-patient").addEventListener("submit", async (e) => 
     }
 });
 
-// ---------- Agendamentos ----------
 document.getElementById("form-appointment").addEventListener("submit", async (e) => {
     e.preventDefault();
 

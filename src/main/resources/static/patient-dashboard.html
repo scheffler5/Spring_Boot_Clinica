@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clínica — Minha Área</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="patient">
+
+<header class="topbar">
+    <h1>🩺 Minha Área</h1>
+    <span class="topbar-info" id="topbar-name"></span>
+    <button id="btn-logout" class="btn-logout">Sair</button>
+</header>
+
+<main class="patient-dashboard">
+
+    
+    <div class="welcome-banner">
+        <h2 id="welcome-name">Olá!</h2>
+        <p>Aqui você acompanha suas consultas e histórico de atendimentos.</p>
+    </div>
+
+    
+    <div id="message" class="message hidden"></div>
+
+    
+    <div class="card-grid">
+
+        
+        <div class="card">
+            <h2>📅 Meus Agendamentos</h2>
+            <div id="appointments-container">
+                <p class="empty-state">Carregando...</p>
+            </div>
+        </div>
+
+        
+        <div class="card">
+            <h2>📋 Histórico Médico</h2>
+            <div id="prontuarios-container">
+                <p class="empty-state">Carregando...</p>
+            </div>
+        </div>
+
+    </div>
+
+    
+    <div class="card">
+        <h2>👤 Meu Perfil</h2>
+        <div class="profile-grid" id="profile-grid">
+            <p class="empty-state" style="grid-column:1/-1">Carregando...</p>
+        </div>
+    </div>
+
+</main>
+
+<script src="js/patient-dashboard.js"></script>
+</body>
+</html>

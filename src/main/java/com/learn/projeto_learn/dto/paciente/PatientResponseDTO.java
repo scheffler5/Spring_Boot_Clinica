@@ -2,15 +2,11 @@ package com.learn.projeto_learn.dto.paciente;
 
 import com.learn.projeto_learn.model.patient.Paciente;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
-public record PatientResponseDTO(
-        UUID id,
-        String nome,
-        String cpf
-) {
-    // Construtor para converter Entidade -> DTO
-    public PatientResponseDTO(Paciente paciente) {
-        this(paciente.getId(), paciente.getNome(), paciente.getCpf());
+public record PatientResponseDTO(UUID id, String nome, String cpf, LocalDate dataNascimento, Boolean ativo) {
+    public PatientResponseDTO(Paciente p) {
+        this(p.getId(), p.getNome(), p.getCpf(), p.getDataNascimento(), p.getAtivo());
     }
 }

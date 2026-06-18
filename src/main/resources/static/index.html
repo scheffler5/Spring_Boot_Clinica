@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clínica - Login</title>
+    <title>Clínica — Acesso da Equipe</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <main class="auth-container">
     <div class="auth-card">
         <h1>🏥 Clínica</h1>
+        <p class="subtitle">Portal da Equipe</p>
 
         <nav class="tabs">
             <button class="tab active" data-tab="login">Entrar</button>
@@ -19,7 +20,7 @@
 
         <div id="message" class="message hidden"></div>
 
-        <!-- LOGIN -->
+        
         <form id="form-login" class="tab-content">
             <label for="login-user">Login</label>
             <input id="login-user" type="text" required autocomplete="username">
@@ -27,19 +28,39 @@
             <label for="login-pass">Senha</label>
             <input id="login-pass" type="password" required autocomplete="current-password">
 
+            <label>Verificação de segurança</label>
+            <div class="captcha-box">
+                <img id="captcha-img-login" src="" alt="CAPTCHA" style="background:#eee">
+                <button type="button" id="btn-refresh-login" class="btn-secondary">↺</button>
+            </div>
+            <label for="captcha-input-login">Digite o código acima</label>
+            <input id="captcha-input-login" type="text" maxlength="6" required autocomplete="off"
+                   placeholder="6 caracteres" style="letter-spacing:4px; text-transform:uppercase">
+
             <button type="submit" class="btn-primary">Entrar</button>
         </form>
 
-        <!-- CADASTRO -->
+        
+        <div id="mfa-step" class="hidden">
+            <div class="info-box" id="mfa-hint"></div>
+            <label for="mfa-email">E-mail</label>
+            <input id="mfa-email" type="email" readonly style="background:#f5f5f5">
+            <label for="mfa-code">Código recebido por e-mail</label>
+            <input id="mfa-code" type="text" maxlength="6" required autocomplete="off"
+                   placeholder="000000" style="letter-spacing:4px; font-size:20px; text-align:center">
+            <button id="btn-verify-mfa" class="btn-primary">Confirmar acesso</button>
+        </div>
+
+        
         <form id="form-register" class="tab-content hidden">
             <label for="reg-user">Login</label>
-            <input id="reg-user" type="text" required>
+            <input id="reg-user" type="text" required minlength="3" maxlength="50">
 
             <label for="reg-email">E-mail</label>
             <input id="reg-email" type="email" required>
 
-            <label for="reg-pass">Senha</label>
-            <input id="reg-pass" type="password" required>
+            <label for="reg-pass">Senha (mín. 8 caracteres)</label>
+            <input id="reg-pass" type="password" required minlength="8">
 
             <label for="reg-role">Função</label>
             <select id="reg-role" required>
@@ -48,10 +69,32 @@
                 <option value="ADMIN">Administrador</option>
             </select>
 
+            <label>Verificação de segurança</label>
+            <div class="captcha-box">
+                <img id="captcha-img-reg" src="" alt="CAPTCHA" style="background:#eee">
+                <button type="button" id="btn-refresh-reg" class="btn-secondary">↺</button>
+            </div>
+            <label for="captcha-input-reg">Digite o código acima</label>
+            <input id="captcha-input-reg" type="text" maxlength="6" required autocomplete="off"
+                   placeholder="6 caracteres" style="letter-spacing:4px; text-transform:uppercase">
+
             <button type="submit" class="btn-primary">Cadastrar</button>
         </form>
 
-        <!-- RECUPERAÇÃO DE SENHA -->
+        
+        <div id="email-verify-step" class="hidden">
+            <div class="info-box">
+                Verifique seu e-mail e insira o código de 6 dígitos enviado.
+            </div>
+            <label for="verify-email">E-mail</label>
+            <input id="verify-email" type="email" readonly style="background:#f5f5f5">
+            <label for="verify-code">Código de verificação</label>
+            <input id="verify-code" type="text" maxlength="6" required autocomplete="off"
+                   placeholder="000000" style="letter-spacing:4px; font-size:20px; text-align:center">
+            <button id="btn-verify-email" class="btn-primary">Verificar e-mail</button>
+        </div>
+
+        
         <div id="form-recovery-wrapper" class="tab-content hidden">
             <form id="form-recovery-request" class="recovery-step">
                 <label for="rec-email">E-mail cadastrado</label>
@@ -61,18 +104,23 @@
 
             <form id="form-recovery-validate" class="recovery-step hidden">
                 <label for="rec-code">Código recebido por e-mail</label>
-                <input id="rec-code" type="text" required>
+                <input id="rec-code" type="text" maxlength="6" required>
                 <button type="submit" class="btn-primary">Validar código</button>
             </form>
 
             <form id="form-recovery-change" class="recovery-step hidden">
                 <label for="rec-newpass">Nova senha</label>
-                <input id="rec-newpass" type="password" required>
+                <input id="rec-newpass" type="password" required minlength="8">
                 <button type="submit" class="btn-primary">Alterar senha</button>
             </form>
         </div>
+
+        <p class="portal-link">
+            É paciente? <a href="patient-login.html">Acesse o Portal do Paciente</a>
+        </p>
     </div>
 </main>
 <script src="js/auth.js"></script>
+<script src="js/mfa-block.js"></script>
 </body>
 </html>

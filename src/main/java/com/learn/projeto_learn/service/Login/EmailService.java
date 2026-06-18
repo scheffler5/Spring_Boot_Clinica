@@ -12,20 +12,24 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    @Value("${spring.mail.username}")
-    private String remetente;
+
+
+    @Value("${spring.mail.from:${spring.mail.username:}}")
+    private String from;
+
+    private static final String FALLBACK_FROM = "noreply@clinica.local";
 
     public void sendEmailText(String para, String assunto, String mensagem) {
         try {
-            SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-            simpleMailMessage.setFrom(remetente);
-            simpleMailMessage.setTo(para);
-            simpleMailMessage.setSubject(assunto);
-            simpleMailMessage.setText(mensagem);
-
-            mailSender.send(simpleMailMessage);
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setFrom(from.isBlank() ? FALLBACK_FROM : from);
+            msg.setTo(para);
+            msg.setSubject(assunto);
+            msg.setText(mensagem);
+            mailSender.send(msg);
+            System.out.println("E-mail enviado para: " + para + " | From: " + (from.isBlank() ? FALLBACK_FROM : from));
         } catch (Exception e) {
-            System.out.println("ERRO AO ENVIAR E-MAIL: " + e.getMessage());
+            System.out.println("ERRO AO ENVIAR E-MAIL para " + para + ": " + e.getMessage());
         }
     }
 }

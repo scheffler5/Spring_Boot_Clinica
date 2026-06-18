@@ -1,35 +1,52 @@
 package com.learn.projeto_learn.service.Agendamento;
 
+import com.learn.projeto_learn.dto.agendamento.AppointmentRequestDTO;
+import com.learn.projeto_learn.dto.agendamento.AppointmentResponseDTO;
+import com.learn.projeto_learn.exception.BusinessException;
 import com.learn.projeto_learn.model.agendamento.Agendamento;
 import com.learn.projeto_learn.model.patient.Paciente;
-import com.learn.projeto_learn.dto.agendamento.AppointmentRequestDTO;
 import com.learn.projeto_learn.repository.AgendamentoRepository;
 import com.learn.projeto_learn.repository.PacienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AgendamentoService {
 
-    @Autowired
-    private AgendamentoRepository agendamentoRepository;
-
-    @Autowired
-    private PacienteRepository pacienteRepository;
+    @Autowired private AgendamentoRepository agendamentoRepository;
+    @Autowired private PacienteRepository pacienteRepository;
 
     public Agendamento createAppointment(AppointmentRequestDTO data) {
-        // 1. Busca o Paciente (Garante que ele existe)
         Paciente paciente = pacienteRepository.findById(data.pacienteId())
-                .orElseThrow(() -> new RuntimeException("Paciente não encontrado com o ID fornecido."));
+                .filter(p -> Boolean.TRUE.equals(p.getAtivo()))
+                .orElseThrow(() -> new BusinessException("Paciente não encontrado.", HttpStatus.NOT_FOUND));
 
-        // 2. Valida Conflito de Horário (Simples)
-        // Nota: Num sistema real com vários médicos, verificaríamos (Data + MedicoID)
         if (agendamentoRepository.existsByDataHora(data.dataHora())) {
-            throw new RuntimeException("Já existe um agendamento para este horário.");
+            throw new BusinessException("Já existe um agendamento neste horário.");
         }
 
-        // 3. Salva
-        Agendamento novoAgendamento = new Agendamento(paciente, data.dataHora());
-        return agendamentoRepository.save(novoAgendamento);
+        return agendamentoRepository.save(new Agendamento(paciente, data.dataHora()));
+    }
+
+    public List<AppointmentResponseDTO> listAll() {
+        return agendamentoRepository.findAll().stream()
+                .map(AppointmentResponseDTO::new)
+                .toList();
+    }
+
+    public List<AppointmentResponseDTO> listByPaciente(UUID pacienteId) {
+        return agendamentoRepository.findAllByPacienteId(pacienteId).stream()
+                .map(AppointmentResponseDTO::new)
+                .toList();
+    }
+
+    public AppointmentResponseDTO findById(UUID id) {
+        return agendamentoRepository.findById(id)
+                .map(AppointmentResponseDTO::new)
+                .orElseThrow(() -> new BusinessException("Agendamento não encontrado.", HttpStatus.NOT_FOUND));
     }
 }

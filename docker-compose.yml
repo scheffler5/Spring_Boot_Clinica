@@ -1,0 +1,63 @@
+services:
+
+  db:
+    image: postgres:16-alpine
+    container_name: clinica_db
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB:-clinica}
+      POSTGRES_USER:     ${POSTGRES_USER:-clinica_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-clinica_pass}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-clinica_user} -d ${POSTGRES_DB:-clinica}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: clinica_mail
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
+  app:
+    build: .
+    container_name: clinica_app
+    depends_on:
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DB_URL:  jdbc:postgresql://db:5432/${POSTGRES_DB:-clinica}
+      DB_USER: ${POSTGRES_USER:-clinica_user}
+      DB_PASS: ${POSTGRES_PASSWORD:-clinica_pass}
+
+      JWT_SECRET:          ${JWT_SECRET:-clinica-dev-secret-2025-troque-em-producao}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-2}
+
+      MAIL_HOST:          ${MAIL_HOST:-mailhog}
+      MAIL_PORT:          ${MAIL_PORT:-1025}
+      MAIL_USER:          ${MAIL_USER:-}
+      MAIL_PASS:          ${MAIL_PASS:-}
+      MAIL_SMTP_AUTH:     ${MAIL_SMTP_AUTH:-false}
+      MAIL_STARTTLS:      ${MAIL_STARTTLS:-false}
+      MAIL_SSL_TRUST:     ${MAIL_SSL_TRUST:-*}
+
+      DDL_AUTO:           create-drop
+      SHOW_SQL:           "false"
+      EMAIL_DOMAIN_CHECK: ${EMAIL_DOMAIN_CHECK:-false}
+
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

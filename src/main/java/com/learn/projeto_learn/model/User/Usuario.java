@@ -1,12 +1,8 @@
 package com.learn.projeto_learn.model.User;
 
-import com.learn.projeto_learn.model.User.UserRole;
+import com.learn.projeto_learn.model.patient.Paciente;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,6 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -31,10 +28,10 @@ public class Usuario implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 50)
     private String login;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 150)
     private String email;
 
     @Column(nullable = false)
@@ -43,16 +40,34 @@ public class Usuario implements UserDetails {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @Column(columnDefinition = "TEXT")
-    private String ssoToken;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "paciente_id", unique = true, nullable = true)
+    private Paciente paciente;
 
     @Column(length = 6)
     private String twoFactorToken;
 
     private LocalDateTime recoveryTokenExpiration;
 
-    @Column(nullable = false)
-    private Boolean ativo = true;
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean emailVerified = false;
+
+    @Column(length = 6)
+    private String emailVerificationToken;
+
+    private LocalDateTime emailVerificationExpiration;
+
+    @Column(length = 6)
+    private String mfaToken;
+
+    private LocalDateTime mfaTokenExpiration;
+
+
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean ativo = false;
+
+    @Column(columnDefinition = "TEXT")
+    private String ssoToken;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -66,38 +81,29 @@ public class Usuario implements UserDetails {
         this.email = email;
         this.password = password;
         this.role = role;
-        this.ativo = true;
+        this.ativo = false;
+        this.emailVerified = false;
     }
 
+    public Usuario(String login, String email, String password, UserRole role, Paciente paciente) {
+        this(login, email, password, role);
+        this.paciente = paciente;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if(this.role == UserRole.ADMIN) return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_USER"));
-        else return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
+        if (this.role == UserRole.ADMIN) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_MEDIC"));
+            authorities.add(new SimpleGrantedAuthority("ROLE_RECEPCIONIST"));
+        }
+        return authorities;
     }
 
-    @Override
-    public String getUsername() {
-        return login;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return this.ativo;
-    }
+    @Override public String getUsername()              { return login; }
+    @Override public boolean isAccountNonExpired()     { return true; }
+    @Override public boolean isAccountNonLocked()      { return true; }
+    @Override public boolean isCredentialsNonExpired() { return true; }
+    @Override public boolean isEnabled()               { return Boolean.TRUE.equals(this.ativo); }
 }
