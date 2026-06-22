@@ -8,6 +8,9 @@ if (!token || role !== "PACIENTE") {
     window.location.href = "patient-login.html";
 }
 
+if (localStorage.getItem("perfilCompleto") !== "true") {
+    window.location.href = "patient-profile-complete.html";
+}
 
 const msgBox = document.getElementById("message");
 

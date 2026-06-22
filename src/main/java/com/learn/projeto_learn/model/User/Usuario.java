@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,43 +32,38 @@ public class Usuario implements UserDetails {
     @Column(nullable = false, unique = true, length = 50)
     private String login;
 
-    @Column(nullable = false, unique = true, length = 150)
+    @Column(length = 100)
+    private String nome;
+
+    @Column(unique = true, length = 150)
     private String email;
 
     @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     private UserRole role;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean perfilCompleto = false;
+
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "paciente_id", unique = true, nullable = true)
     private Paciente paciente;
 
-    @Column(length = 6)
-    private String twoFactorToken;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
+    private Especialidade especialidade;
 
-    private LocalDateTime recoveryTokenExpiration;
+    @Column(length = 20)
+    private String crm;
 
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private Boolean emailVerified = false;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal valorConsulta;
 
-    @Column(length = 6)
-    private String emailVerificationToken;
-
-    private LocalDateTime emailVerificationExpiration;
-
-    @Column(length = 6)
-    private String mfaToken;
-
-    private LocalDateTime mfaTokenExpiration;
-
-
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private Boolean ativo = false;
-
-    @Column(columnDefinition = "TEXT")
-    private String ssoToken;
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean ativo = true;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -76,18 +72,12 @@ public class Usuario implements UserDetails {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public Usuario(String login, String email, String password, UserRole role) {
+    public Usuario(String login, String senhaHash, UserRole role) {
         this.login = login;
-        this.email = email;
-        this.password = password;
+        this.password = senhaHash;
         this.role = role;
         this.ativo = true;
-        this.emailVerified = true;
-    }
-
-    public Usuario(String login, String email, String password, UserRole role, Paciente paciente) {
-        this(login, email, password, role);
-        this.paciente = paciente;
+        this.perfilCompleto = false;
     }
 
     @Override

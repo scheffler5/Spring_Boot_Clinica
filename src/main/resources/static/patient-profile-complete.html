@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clínica — Complete seu cadastro</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="patient">
+<header class="topbar">
+    <h1>🩺 Complete seu cadastro</h1>
+    <button id="btn-logout" class="btn-logout">Sair</button>
+</header>
+
+<main style="max-width:540px;margin:40px auto;padding:0 16px">
+    <div class="card">
+        <h2>Dados pessoais</h2>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:20px">
+            Para agendar consultas precisamos de mais algumas informações.
+        </p>
+
+        <div id="message" class="message hidden"></div>
+
+        <form id="form-profile" novalidate>
+            <label for="nome">Nome completo</label>
+            <input id="nome" type="text" required maxlength="100">
+            <span class="field-error hidden" data-field="nome"></span>
+
+            <label for="cpf">CPF <small>(somente números)</small></label>
+            <input id="cpf" type="text" required maxlength="14" placeholder="000.000.000-00">
+            <span class="field-error hidden" data-field="cpf"></span>
+
+            <label for="dataNascimento">Data de nascimento</label>
+            <input id="dataNascimento" type="date" required>
+            <span class="field-error hidden" data-field="dataNascimento"></span>
+
+            <label for="nomeMae">Nome da mãe</label>
+            <input id="nomeMae" type="text" required maxlength="100">
+            <span class="field-error hidden" data-field="nomeMae"></span>
+
+            <button type="submit" class="btn-primary" style="margin-top:24px">Salvar e acessar o sistema</button>
+        </form>
+    </div>
+</main>
+
+<script src="js/patient-profile.js"></script>
+</body>
+</html>

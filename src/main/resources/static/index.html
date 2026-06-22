@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clínica — Acesso da Equipe</title>
+    <title>Clínica — Acesso Médico</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <main class="auth-container">
     <div class="auth-card">
         <h1>🏥 Clínica</h1>
-        <p class="subtitle">Portal da Equipe</p>
+        <p class="subtitle">Portal Médico</p>
 
         <nav class="tabs">
             <button class="tab active" data-tab="login">Entrar</button>
-            <button class="tab" data-tab="register">Cadastrar</button>
+            <button class="tab" data-tab="register">Criar conta</button>
         </nav>
 
         <div id="message" class="message hidden"></div>
@@ -50,25 +50,12 @@
             <input id="reg-user" type="text" required minlength="3" maxlength="50">
             <span class="field-error hidden" data-field="reg-user"></span>
 
-            <label for="reg-email">E-mail</label>
-            <input id="reg-email" type="email" required>
-            <span class="field-error hidden" data-field="reg-email"></span>
-
             <label for="reg-pass">Senha <small>(mín. 8 caracteres)</small></label>
             <div class="input-pass-wrap">
                 <input id="reg-pass" type="password" required minlength="8">
                 <button type="button" class="toggle-pass" aria-label="Mostrar senha">👁</button>
             </div>
             <span class="field-error hidden" data-field="reg-pass"></span>
-
-            <label for="reg-role">Função</label>
-            <select id="reg-role" required>
-                <option value="">Selecione...</option>
-                <option value="RECEPCIONIST">Recepcionista</option>
-                <option value="MEDIC">Médico</option>
-                <option value="ADMIN">Administrador</option>
-            </select>
-            <span class="field-error hidden" data-field="reg-role"></span>
 
             <div class="captcha-widget">
                 <div class="captcha-inner">
@@ -81,7 +68,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-primary" id="btn-reg-submit" disabled>Cadastrar</button>
+            <button type="submit" class="btn-primary" id="btn-reg-submit" disabled>Criar conta</button>
         </form>
 
         <p class="portal-link">

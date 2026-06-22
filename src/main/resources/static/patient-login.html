@@ -10,20 +10,19 @@
 <main class="auth-container">
     <div class="auth-card">
         <h1>🩺 Portal do Paciente</h1>
-        <p class="subtitle">Acesse seus agendamentos e histórico médico</p>
+        <p class="subtitle">Agende consultas com facilidade</p>
 
         <nav class="tabs">
             <button class="tab active" data-tab="login">Entrar</button>
-            <button class="tab" data-tab="register">Cadastrar</button>
+            <button class="tab" data-tab="register">Criar conta</button>
         </nav>
 
         <div id="message" class="message hidden"></div>
 
         <form id="form-login" class="tab-content" novalidate>
-            <label for="login-cpf">CPF <small>(somente números)</small></label>
-            <input id="login-cpf" type="text" maxlength="11" required
-                   autocomplete="username" placeholder="00000000000">
-            <span class="field-error hidden" data-field="login-cpf"></span>
+            <label for="login-user">Login</label>
+            <input id="login-user" type="text" required autocomplete="username">
+            <span class="field-error hidden" data-field="login-user"></span>
 
             <label for="login-pass">Senha</label>
             <div class="input-pass-wrap">
@@ -47,21 +46,9 @@
         </form>
 
         <form id="form-register" class="tab-content hidden" novalidate>
-            <label for="reg-nome">Nome completo</label>
-            <input id="reg-nome" type="text" required minlength="3" maxlength="100">
-            <span class="field-error hidden" data-field="reg-nome"></span>
-
-            <label for="reg-cpf">CPF <small>(somente números)</small></label>
-            <input id="reg-cpf" type="text" maxlength="11" required placeholder="00000000000">
-            <span class="field-error hidden" data-field="reg-cpf"></span>
-
-            <label for="reg-nascimento">Data de nascimento</label>
-            <input id="reg-nascimento" type="date" required>
-            <span class="field-error hidden" data-field="reg-nascimento"></span>
-
-            <label for="reg-email">E-mail</label>
-            <input id="reg-email" type="email" required>
-            <span class="field-error hidden" data-field="reg-email"></span>
+            <label for="reg-user">Login</label>
+            <input id="reg-user" type="text" required minlength="3" maxlength="50">
+            <span class="field-error hidden" data-field="reg-user"></span>
 
             <label for="reg-pass">Senha <small>(mín. 8 caracteres)</small></label>
             <div class="input-pass-wrap">
@@ -85,7 +72,7 @@
         </form>
 
         <p class="portal-link">
-            É funcionário? <a href="index.html">Acesse o Portal da Equipe</a>
+            É médico? <a href="index.html">Acesse o Portal Médico</a>
         </p>
     </div>
 </main>

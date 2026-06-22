@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clínica — Complete seu perfil médico</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+    <h1>🏥 Complete seu perfil</h1>
+    <button id="btn-logout" class="btn-logout">Sair</button>
+</header>
+
+<main style="max-width:540px;margin:40px auto;padding:0 16px">
+    <div class="card">
+        <h2>Dados do médico</h2>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:20px">
+            Preencha as informações abaixo para liberar o acesso ao sistema.
+        </p>
+
+        <div id="message" class="message hidden"></div>
+
+        <form id="form-profile" novalidate>
+            <label for="nome">Nome completo</label>
+            <input id="nome" type="text" required maxlength="100">
+            <span class="field-error hidden" data-field="nome"></span>
+
+            <label for="crm">CRM</label>
+            <input id="crm" type="text" required maxlength="20" placeholder="Ex: 123456/SP">
+            <span class="field-error hidden" data-field="crm"></span>
+
+            <label for="especialidade">Especialidade</label>
+            <select id="especialidade" required>
+                <option value="">Selecione...</option>
+            </select>
+            <span class="field-error hidden" data-field="especialidade"></span>
+
+            <label for="valorConsulta">Valor da consulta (R$)</label>
+            <input id="valorConsulta" type="number" required min="0" step="0.01" placeholder="0,00">
+            <span class="field-error hidden" data-field="valorConsulta"></span>
+
+            <button type="submit" class="btn-primary" style="margin-top:24px">Salvar e acessar o sistema</button>
+        </form>
+    </div>
+</main>
+
+<script src="js/doctor-profile.js"></script>
+</body>
+</html>

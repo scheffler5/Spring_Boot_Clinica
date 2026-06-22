@@ -4,6 +4,7 @@ import com.learn.projeto_learn.Infra.Security.IpBlockingService;
 import com.learn.projeto_learn.Infra.Security.TokenService;
 import com.learn.projeto_learn.dto.Login.*;
 import com.learn.projeto_learn.exception.BusinessException;
+import com.learn.projeto_learn.model.User.UserRole;
 import com.learn.projeto_learn.model.User.Usuario;
 import com.learn.projeto_learn.repository.UsuarioRepository;
 import com.learn.projeto_learn.service.captcha.CaptchaService;
@@ -18,7 +19,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,12 +28,13 @@ import java.util.List;
 @RequestMapping("/auth")
 public class AuthenticationController {
 
-    @Autowired private TokenService tokenService;
+    @Autowired private TokenService          tokenService;
     @Autowired private AuthenticationManager authenticationManager;
-    @Autowired private UsuarioRepository repository;
-    @Autowired private CaptchaService captchaService;
-    @Autowired private IpBlockingService ipBlockingService;
+    @Autowired private UsuarioRepository     repository;
+    @Autowired private CaptchaService        captchaService;
+    @Autowired private IpBlockingService     ipBlockingService;
     @Autowired private EmailValidationService emailValidationService;
+    @Autowired private PasswordEncoder       passwordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO data,
@@ -40,9 +42,7 @@ public class AuthenticationController {
         String ip = resolveIp(request);
 
         if (ipBlockingService.isBlocked(ip)) {
-            throw new BusinessException(
-                    "IP bloqueado por excesso de tentativas. Aguarde 15 minutos.",
-                    HttpStatus.TOO_MANY_REQUESTS);
+            throw new BusinessException("IP bloqueado. Aguarde 15 minutos.", HttpStatus.TOO_MANY_REQUESTS);
         }
         if (!captchaService.validate(data.captchaId(), data.captchaCode())) {
             throw new BusinessException("Verificação de segurança inválida. Tente novamente.");
@@ -54,7 +54,12 @@ public class AuthenticationController {
 
             ipBlockingService.registerSuccess(ip);
             Usuario user = (Usuario) repository.findByLogin(data.login());
-            return ResponseEntity.ok(new LoginResponseDTO(tokenService.generateToken(user), user.getRole().name()));
+
+            return ResponseEntity.ok(new LoginResponseDTO(
+                    tokenService.generateToken(user),
+                    user.getRole().name(),
+                    Boolean.TRUE.equals(user.getPerfilCompleto())
+            ));
 
         } catch (DisabledException ex) {
             throw new BusinessException("Conta desativada. Entre em contato com o administrador.", HttpStatus.FORBIDDEN);
@@ -73,13 +78,12 @@ public class AuthenticationController {
         if (!captchaService.validate(data.captchaId(), data.captchaCode())) {
             throw new BusinessException("Verificação de segurança inválida.");
         }
-        emailValidationService.validate(data.email());
+        if (repository.findByLogin(data.login()) != null) {
+            throw new BusinessException("Login já está em uso.");
+        }
 
-        if (repository.findByLogin(data.login()) != null) throw new BusinessException("Login já está em uso.");
-        if (repository.existsByEmail(data.email()))        throw new BusinessException("E-mail já cadastrado.");
-
-        String hash = new BCryptPasswordEncoder().encode(data.password());
-        repository.save(new Usuario(data.login(), data.email(), hash, data.role()));
+        String hash = passwordEncoder.encode(data.password());
+        repository.save(new Usuario(data.login(), hash, UserRole.MEDIC));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

@@ -5,6 +5,10 @@ if (!token) {
     window.location.href = "index.html";
 }
 
+if (localStorage.getItem("perfilCompleto") !== "true") {
+    window.location.href = "doctor-profile-complete.html";
+}
+
 const messageBox = document.getElementById("message");
 
 function showMessage(text, type) {
