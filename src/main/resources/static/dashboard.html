@@ -47,6 +47,11 @@
                 <option value="">Carregando...</option>
             </select>
 
+            <label for="app-medico">Médico</label>
+            <select id="app-medico" required>
+                <option value="">Carregando...</option>
+            </select>
+
             <label for="app-datahora">Data e hora</label>
             <input id="app-datahora" type="datetime-local" required>
 
@@ -71,6 +76,24 @@
             </thead>
             <tbody id="patients-body">
             <tr><td colspan="3">Carregando...</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card full">
+        <h2>Agendamentos</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Paciente</th>
+                <th>Médico</th>
+                <th>Data e hora</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+            <tbody id="appointments-body">
+            <tr><td colspan="5">Carregando...</td></tr>
             </tbody>
         </table>
     </section>
