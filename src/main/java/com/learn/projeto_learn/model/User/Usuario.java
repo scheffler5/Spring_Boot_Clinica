@@ -81,8 +81,8 @@ public class Usuario implements UserDetails {
         this.email = email;
         this.password = password;
         this.role = role;
-        this.ativo = false;
-        this.emailVerified = false;
+        this.ativo = true;
+        this.emailVerified = true;
     }
 
     public Usuario(String login, String email, String password, UserRole role, Paciente paciente) {

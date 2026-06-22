@@ -40,19 +40,8 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.GET, "/", "/*.html", "/css/**", "/js/**", "/favicon.ico").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/captcha/generate").permitAll()
-
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/verify-mfa").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/resend-mfa").permitAll()
-
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/verify-email").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/resend-verification").permitAll()
-
-                        .requestMatchers(HttpMethod.POST, "/auth/request-recovery").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/validate-recovery").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/change-password").permitAll()
-
                         .requestMatchers(HttpMethod.POST, "/patient/register").permitAll()
                         .requestMatchers("/error").permitAll()
 

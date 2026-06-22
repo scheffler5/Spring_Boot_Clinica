@@ -51,7 +51,7 @@ services:
       MAIL_STARTTLS:      ${MAIL_STARTTLS:-false}
       MAIL_SSL_TRUST:     ${MAIL_SSL_TRUST:-*}
 
-      DDL_AUTO:           create-drop
+      DDL_AUTO:           update
       SHOW_SQL:           "false"
       EMAIL_DOMAIN_CHECK: ${EMAIL_DOMAIN_CHECK:-false}
 

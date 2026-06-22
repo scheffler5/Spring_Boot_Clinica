@@ -1,6 +1,5 @@
 const API = "";
 
-
 const msgBox = document.getElementById("message");
 
 function showMsg(text, type) {
@@ -10,234 +9,212 @@ function showMsg(text, type) {
 
 function clearMsg() { msgBox.className = "message hidden"; }
 
+function clearFieldErrors() {
+    document.querySelectorAll(".field-error").forEach(el => {
+        el.textContent = "";
+        el.classList.add("hidden");
+    });
+    document.querySelectorAll("input.field-invalid").forEach(el => el.classList.remove("field-invalid"));
+}
+
+function showFieldErrors(fieldErrors) {
+    if (!fieldErrors || fieldErrors.length === 0) return;
+    const fieldMap = { nome: "reg-nome", cpf: "reg-cpf", dataNascimento: "reg-nascimento", email: "reg-email", password: "reg-pass" };
+    fieldErrors.forEach(({ field, message }) => {
+        const inputId = fieldMap[field] || field;
+        const input   = document.getElementById(inputId);
+        const errEl   = document.querySelector(`[data-field="${inputId}"]`);
+        if (input)  input.classList.add("field-invalid");
+        if (errEl)  { errEl.textContent = message; errEl.classList.remove("hidden"); }
+    });
+}
+
+function validateLocal(fields) {
+    clearFieldErrors();
+    let valid = true;
+    fields.forEach(({ id, checks }) => {
+        const el    = document.getElementById(id);
+        const errEl = document.querySelector(`[data-field="${id}"]`);
+        if (!el) return;
+        const val = el.value.trim();
+        for (const { test, msg } of checks) {
+            if (!test(val)) {
+                el.classList.add("field-invalid");
+                if (errEl) { errEl.textContent = msg; errEl.classList.remove("hidden"); }
+                valid = false;
+                break;
+            }
+        }
+    });
+    return valid;
+}
 
 document.querySelectorAll(".tab").forEach(tab => {
     tab.addEventListener("click", () => {
         document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
         tab.classList.add("active");
         clearMsg();
-
+        clearFieldErrors();
         const active = tab.dataset.tab;
         document.getElementById("form-login").classList.toggle("hidden", active !== "login");
-        document.getElementById("mfa-step").classList.add("hidden");
-        document.getElementById("email-verify-step").classList.add("hidden");
         document.getElementById("form-register").classList.toggle("hidden", active !== "register");
-        document.getElementById("form-recovery-wrapper").classList.toggle("hidden", active !== "recovery");
     });
 });
 
+let powLogin = null;
+let powReg   = null;
 
-let captchaIdLogin = null;
-let captchaIdReg   = null;
+function initCaptcha(boxId, submitId, store) {
+    const box    = document.getElementById(boxId);
+    const submit = document.getElementById(submitId);
 
-async function loadCaptcha(imgId, store) {
-    const img = document.getElementById(imgId);
-    img.src = "";
-    img.style.background = "#eee";
-    const res  = await fetch(`${API}/captcha/generate`);
-    const data = await res.json();
-    img.src = data.image;
-    img.style.background = "transparent";
-    if (store === "login") captchaIdLogin = data.captchaId;
-    else                   captchaIdReg   = data.captchaId;
+    submit.disabled = true;
+    box.className   = "captcha-box";
+    box.innerHTML   = "";
+    box.setAttribute("aria-checked", "false");
+
+    if (store === "login") powLogin = null;
+    else                   powReg   = null;
+
+    box.onclick = () => {
+        if (box.classList.contains("loading") || box.classList.contains("done")) return;
+
+        box.className = "captcha-box loading";
+        box.innerHTML = '<div class="captcha-spinner"></div>';
+
+        fetch(`${API}/captcha/generate`)
+            .then(r => r.json())
+            .then(({ challengeId, challenge, difficulty }) => {
+                const worker = new Worker("js/pow-worker.js");
+                worker.onmessage = ({ data: { nonce } }) => {
+                    if (store === "login") powLogin = { challengeId, nonce };
+                    else                   powReg   = { challengeId, nonce };
+                    box.className = "captcha-box done";
+                    box.innerHTML = '<span class="captcha-check">✓</span>';
+                    box.setAttribute("aria-checked", "true");
+                    submit.disabled = false;
+                    worker.terminate();
+                };
+                worker.onerror = () => {
+                    box.className = "captcha-box";
+                    box.innerHTML = "";
+                    showMsg("Erro na verificação. Tente novamente.", "error");
+                };
+                worker.postMessage({ challenge, difficulty });
+            })
+            .catch(() => {
+                box.className = "captcha-box";
+                box.innerHTML = "";
+                showMsg("Sem conexão com o servidor.", "error");
+            });
+    };
 }
 
-loadCaptcha("captcha-img-login", "login");
-loadCaptcha("captcha-img-reg",   "reg");
-
-document.getElementById("btn-refresh-login").addEventListener("click", () =>
-    loadCaptcha("captcha-img-login", "login"));
-document.getElementById("btn-refresh-reg").addEventListener("click", () =>
-    loadCaptcha("captcha-img-reg", "reg"));
-
-
-let mfaEmailGlobal = null;
+initCaptcha("captcha-box-login", "btn-login-submit", "login");
+initCaptcha("captcha-box-reg",   "btn-reg-submit",   "reg");
 
 document.getElementById("form-login").addEventListener("submit", async e => {
     e.preventDefault();
     clearMsg();
 
-    const cpf = document.getElementById("login-cpf").value.replace(/\D/g, "");
+    const ok = validateLocal([
+        { id: "login-cpf",  checks: [
+            { test: v => v.length > 0,                          msg: "CPF é obrigatório" },
+            { test: v => /^\d{11}$/.test(v.replace(/\D/g, "")), msg: "CPF deve ter 11 dígitos" }
+        ]},
+        { id: "login-pass", checks: [{ test: v => v.length > 0, msg: "Senha é obrigatória" }] }
+    ]);
+    if (!ok) return;
+    if (!powLogin) { showMsg("Clique em 'Não sou um robô' antes de continuar.", "error"); return; }
 
+    const cpf  = document.getElementById("login-cpf").value.replace(/\D/g, "");
     const body = {
         login:       cpf,
         password:    document.getElementById("login-pass").value,
-        captchaId:   captchaIdLogin,
-        captchaCode: document.getElementById("captcha-input-login").value.toUpperCase()
+        captchaId:   powLogin.challengeId,
+        captchaCode: powLogin.nonce
     };
 
-    const res = await fetch(`${API}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+    initCaptcha("captcha-box-login", "btn-login-submit", "login");
+
+    const res  = await fetch(`${API}/auth/login`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
     });
-
-    loadCaptcha("captcha-img-login", "login");
-    document.getElementById("captcha-input-login").value = "";
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        showMsg(err.message || "CPF ou senha inválidos.", "error");
+        showFieldErrors(data.fieldErrors);
+        showMsg(data.message || "CPF ou senha inválidos.", "error");
         return;
     }
 
-    const data = await res.json();
-    mfaEmailGlobal = data.emailHint;
-
-    document.getElementById("form-login").classList.add("hidden");
-    document.getElementById("mfa-hint").textContent =
-        `Código de acesso enviado para ${data.emailHint}. Verifique sua caixa de entrada.`;
-    document.getElementById("mfa-email").value = data.emailHint;
-    document.getElementById("mfa-step").classList.remove("hidden");
-
-    mfaEmailGlobal = data.email;
-    if (window.initMfaStep) window.initMfaStep(data.emailHint, data.email);
-    showMsg("Código de verificação enviado por e-mail.", "info");
-});
-
-
-document.getElementById("btn-verify-mfa").addEventListener("click", async () => {
-    clearMsg();
-
-    const mfaCode = document.getElementById("mfa-code").value.trim();
-    if (!mfaCode) { showMsg("Informe o código MFA.", "error"); return; }
-
-    const res = await fetch(`${API}/auth/verify-mfa`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: mfaEmailGlobal, mfaCode })
-    });
-
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        showMsg(err.message || "Código inválido.", "error");
-        const match = (err.message || "").match(/(\d+)\s*tentativa/);
-        const remaining = match ? parseInt(match[1]) : undefined;
-        if (window.onMfaFailure) window.onMfaFailure(err.message, remaining);
-        return;
-    }
-
-    const data = await res.json();
     localStorage.setItem("token", data.token);
     localStorage.setItem("role",  data.role);
     window.location.href = "patient-dashboard.html";
 });
 
-
-let pendingRegEmail = null;
-
 document.getElementById("form-register").addEventListener("submit", async e => {
     e.preventDefault();
     clearMsg();
 
-    const email = document.getElementById("reg-email").value;
-    const cpf   = document.getElementById("reg-cpf").value.replace(/\D/g, "");
+    const ok = validateLocal([
+        { id: "reg-nome",       checks: [
+            { test: v => v.length > 0,  msg: "Nome é obrigatório" },
+            { test: v => v.length >= 3, msg: "Nome deve ter no mínimo 3 caracteres" }
+        ]},
+        { id: "reg-cpf",        checks: [
+            { test: v => v.length > 0,                          msg: "CPF é obrigatório" },
+            { test: v => /^\d{11}$/.test(v.replace(/\D/g,"")), msg: "CPF deve ter 11 dígitos" }
+        ]},
+        { id: "reg-nascimento", checks: [{ test: v => v.length > 0, msg: "Data de nascimento é obrigatória" }] },
+        { id: "reg-email",      checks: [
+            { test: v => v.length > 0, msg: "E-mail é obrigatório" },
+            { test: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), msg: "Formato de e-mail inválido" }
+        ]},
+        { id: "reg-pass",       checks: [
+            { test: v => v.length > 0,  msg: "Senha é obrigatória" },
+            { test: v => v.length >= 8, msg: "Senha deve ter no mínimo 8 caracteres" }
+        ]}
+    ]);
+    if (!ok) return;
+    if (!powReg) { showMsg("Clique em 'Não sou um robô' antes de continuar.", "error"); return; }
 
+    const cpf  = document.getElementById("reg-cpf").value.replace(/\D/g, "");
     const body = {
-        nome:          document.getElementById("reg-nome").value,
+        nome:           document.getElementById("reg-nome").value,
         cpf,
         dataNascimento: document.getElementById("reg-nascimento").value,
-        email,
-        password:      document.getElementById("reg-pass").value,
-        captchaId:     captchaIdReg,
-        captchaCode:   document.getElementById("captcha-input-reg").value.toUpperCase()
+        email:          document.getElementById("reg-email").value,
+        password:       document.getElementById("reg-pass").value,
+        captchaId:      powReg.challengeId,
+        captchaCode:    powReg.nonce
     };
 
-    const res = await fetch(`${API}/patient/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+    initCaptcha("captcha-box-reg", "btn-reg-submit", "reg");
+
+    const res  = await fetch(`${API}/patient/register`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
     });
-
-    loadCaptcha("captcha-img-reg", "reg");
-    document.getElementById("captcha-input-reg").value = "";
+    const data = await res.json().catch(() => null);
 
     if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        showMsg(err.message || "Erro ao cadastrar.", "error");
+        if (data?.fieldErrors) showFieldErrors(data.fieldErrors);
+        showMsg(data?.message || "Erro ao cadastrar.", "error");
         return;
     }
 
-    pendingRegEmail = email;
-    document.getElementById("form-register").classList.add("hidden");
-    document.getElementById("verify-email").value = email;
-    document.getElementById("email-verify-step").classList.remove("hidden");
-    showMsg("Conta criada! Verifique seu e-mail para ativar o acesso.", "success");
-});
-
-
-document.getElementById("btn-verify-email").addEventListener("click", async () => {
-    clearMsg();
-
-    const code = document.getElementById("verify-code").value.trim();
-    if (!code) { showMsg("Informe o código de verificação.", "error"); return; }
-
-    const res = await fetch(`${API}/auth/verify-email`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: pendingRegEmail, code })
-    });
-
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        showMsg(err.message || "Código inválido.", "error");
-        return;
-    }
-
-    showMsg("E-mail verificado! Agora faça login com seu CPF.", "success");
-    document.getElementById("email-verify-step").classList.add("hidden");
+    showMsg("Conta criada! Faça login com seu CPF.", "success");
     document.querySelector('.tab[data-tab="login"]').click();
 });
 
-
-const stepRequest  = document.getElementById("form-recovery-request");
-const stepValidate = document.getElementById("form-recovery-validate");
-const stepChange   = document.getElementById("form-recovery-change");
-
-let recoveryEmail = null;
-let recoveryCode  = null;
-
-stepRequest.addEventListener("submit", async e => {
-    e.preventDefault(); clearMsg();
-    recoveryEmail = document.getElementById("rec-email").value;
-
-    const res = await fetch(`${API}/auth/request-recovery`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: recoveryEmail })
+document.querySelectorAll(".toggle-pass").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const input = btn.previousElementSibling;
+        const show  = input.type === "password";
+        input.type  = show ? "text" : "password";
+        btn.textContent = show ? "🙈" : "👁";
+        btn.setAttribute("aria-label", show ? "Ocultar senha" : "Mostrar senha");
     });
-
-    showMsg(await res.text().then(t => t.replace(/"/g, "")), res.ok ? "success" : "error");
-    if (res.ok) { stepRequest.classList.add("hidden"); stepValidate.classList.remove("hidden"); }
-});
-
-stepValidate.addEventListener("submit", async e => {
-    e.preventDefault(); clearMsg();
-    recoveryCode = document.getElementById("rec-code").value;
-
-    const res = await fetch(`${API}/auth/validate-recovery`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: recoveryEmail, code: recoveryCode })
-    });
-
-    if (res.ok) { stepValidate.classList.add("hidden"); stepChange.classList.remove("hidden"); }
-    else { showMsg("Código inválido ou expirado.", "error"); }
-});
-
-stepChange.addEventListener("submit", async e => {
-    e.preventDefault(); clearMsg();
-    const newPassword = document.getElementById("rec-newpass").value;
-
-    const res = await fetch(`${API}/auth/change-password`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: recoveryEmail, code: recoveryCode, newPassword })
-    });
-
-    if (res.ok) {
-        stepChange.classList.add("hidden");
-        stepRequest.classList.remove("hidden");
-        document.querySelector('.tab[data-tab="login"]').click();
-        showMsg("Senha alterada! Faça login com seu CPF.", "success");
-    } else {
-        showMsg("Erro ao alterar senha.", "error");
-    }
 });

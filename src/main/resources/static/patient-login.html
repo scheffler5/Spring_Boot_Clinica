@@ -15,105 +15,74 @@
         <nav class="tabs">
             <button class="tab active" data-tab="login">Entrar</button>
             <button class="tab" data-tab="register">Cadastrar</button>
-            <button class="tab" data-tab="recovery">Recuperar senha</button>
         </nav>
 
         <div id="message" class="message hidden"></div>
 
-        
-        <form id="form-login" class="tab-content">
-            <label for="login-cpf">CPF (somente números)</label>
+        <form id="form-login" class="tab-content" novalidate>
+            <label for="login-cpf">CPF <small>(somente números)</small></label>
             <input id="login-cpf" type="text" maxlength="11" required
                    autocomplete="username" placeholder="00000000000">
+            <span class="field-error hidden" data-field="login-cpf"></span>
 
             <label for="login-pass">Senha</label>
-            <input id="login-pass" type="password" required autocomplete="current-password">
-
-            <label>Verificação de segurança</label>
-            <div class="captcha-box">
-                <img id="captcha-img-login" src="" alt="CAPTCHA" style="background:#eee">
-                <button type="button" id="btn-refresh-login" class="btn-secondary">↺</button>
+            <div class="input-pass-wrap">
+                <input id="login-pass" type="password" required autocomplete="current-password">
+                <button type="button" class="toggle-pass" aria-label="Mostrar senha">👁</button>
             </div>
-            <label for="captcha-input-login">Digite o código acima</label>
-            <input id="captcha-input-login" type="text" maxlength="6" required autocomplete="off"
-                   placeholder="6 caracteres" style="letter-spacing:4px; text-transform:uppercase">
+            <span class="field-error hidden" data-field="login-pass"></span>
 
-            <button type="submit" class="btn-primary">Entrar</button>
+            <div class="captcha-widget">
+                <div class="captcha-inner">
+                    <div class="captcha-box" id="captcha-box-login" role="checkbox" aria-checked="false" tabindex="0"></div>
+                    <span class="captcha-label">Não sou um robô</span>
+                </div>
+                <div class="captcha-brand">
+                    <div class="captcha-brand-icon">🔒</div>
+                    <div>Segurança</div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" id="btn-login-submit" disabled>Entrar</button>
         </form>
 
-        
-        <div id="mfa-step" class="hidden">
-            <div class="info-box" id="mfa-hint"></div>
-            <label for="mfa-email">E-mail</label>
-            <input id="mfa-email" type="email" readonly style="background:#f5f5f5">
-            <label for="mfa-code">Código recebido por e-mail</label>
-            <input id="mfa-code" type="text" maxlength="6" autocomplete="off"
-                   placeholder="000000" style="letter-spacing:4px; font-size:20px; text-align:center">
-            <button id="btn-verify-mfa" class="btn-primary">Confirmar acesso</button>
-        </div>
-
-        
-        <form id="form-register" class="tab-content hidden">
+        <form id="form-register" class="tab-content hidden" novalidate>
             <label for="reg-nome">Nome completo</label>
             <input id="reg-nome" type="text" required minlength="3" maxlength="100">
+            <span class="field-error hidden" data-field="reg-nome"></span>
 
-            <label for="reg-cpf">CPF (somente números)</label>
+            <label for="reg-cpf">CPF <small>(somente números)</small></label>
             <input id="reg-cpf" type="text" maxlength="11" required placeholder="00000000000">
+            <span class="field-error hidden" data-field="reg-cpf"></span>
 
             <label for="reg-nascimento">Data de nascimento</label>
             <input id="reg-nascimento" type="date" required>
+            <span class="field-error hidden" data-field="reg-nascimento"></span>
 
             <label for="reg-email">E-mail</label>
             <input id="reg-email" type="email" required>
+            <span class="field-error hidden" data-field="reg-email"></span>
 
-            <label for="reg-pass">Senha (mín. 8 caracteres)</label>
-            <input id="reg-pass" type="password" required minlength="8">
-
-            <label>Verificação de segurança</label>
-            <div class="captcha-box">
-                <img id="captcha-img-reg" src="" alt="CAPTCHA" style="background:#eee">
-                <button type="button" id="btn-refresh-reg" class="btn-secondary">↺</button>
+            <label for="reg-pass">Senha <small>(mín. 8 caracteres)</small></label>
+            <div class="input-pass-wrap">
+                <input id="reg-pass" type="password" required minlength="8">
+                <button type="button" class="toggle-pass" aria-label="Mostrar senha">👁</button>
             </div>
-            <label for="captcha-input-reg">Digite o código acima</label>
-            <input id="captcha-input-reg" type="text" maxlength="6" required autocomplete="off"
-                   placeholder="6 caracteres" style="letter-spacing:4px; text-transform:uppercase">
+            <span class="field-error hidden" data-field="reg-pass"></span>
 
-            <button type="submit" class="btn-primary">Criar conta</button>
+            <div class="captcha-widget">
+                <div class="captcha-inner">
+                    <div class="captcha-box" id="captcha-box-reg" role="checkbox" aria-checked="false" tabindex="0"></div>
+                    <span class="captcha-label">Não sou um robô</span>
+                </div>
+                <div class="captcha-brand">
+                    <div class="captcha-brand-icon">🔒</div>
+                    <div>Segurança</div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" id="btn-reg-submit" disabled>Criar conta</button>
         </form>
-
-        
-        <div id="email-verify-step" class="hidden">
-            <div class="info-box">
-                Enviamos um código de verificação para o seu e-mail. Insira-o abaixo para ativar sua conta.
-            </div>
-            <label for="verify-email">E-mail</label>
-            <input id="verify-email" type="email" readonly style="background:#f5f5f5">
-            <label for="verify-code">Código de verificação</label>
-            <input id="verify-code" type="text" maxlength="6" autocomplete="off"
-                   placeholder="000000" style="letter-spacing:4px; font-size:20px; text-align:center">
-            <button id="btn-verify-email" class="btn-primary">Verificar e-mail</button>
-        </div>
-
-        
-        <div id="form-recovery-wrapper" class="tab-content hidden">
-            <form id="form-recovery-request">
-                <label for="rec-email">E-mail cadastrado</label>
-                <input id="rec-email" type="email" required>
-                <button type="submit" class="btn-primary">Enviar código</button>
-            </form>
-
-            <form id="form-recovery-validate" class="hidden">
-                <label for="rec-code">Código recebido por e-mail</label>
-                <input id="rec-code" type="text" maxlength="6" required>
-                <button type="submit" class="btn-primary">Validar código</button>
-            </form>
-
-            <form id="form-recovery-change" class="hidden">
-                <label for="rec-newpass">Nova senha</label>
-                <input id="rec-newpass" type="password" required minlength="8">
-                <button type="submit" class="btn-primary">Alterar senha</button>
-            </form>
-        </div>
 
         <p class="portal-link">
             É funcionário? <a href="index.html">Acesse o Portal da Equipe</a>
@@ -121,6 +90,5 @@
     </div>
 </main>
 <script src="js/patient-auth.js"></script>
-<script src="js/mfa-block.js"></script>
 </body>
 </html>
