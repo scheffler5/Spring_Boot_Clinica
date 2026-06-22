@@ -109,6 +109,14 @@ async function loadAppointments() {
         return;
     }
 
+    const STATUS_LABELS = {
+        AGENDADO: "Agendado",
+        CONFIRMADO: "Confirmado",
+        CANCELADO: "Cancelado",
+        REALIZADO: "Realizado",
+    };
+    const statusLabel = a => STATUS_LABELS[a.status] || a.status || "—";
+
     const now = new Date();
     const futuros  = list.filter(a => new Date(a.dataHora) >= now);
     const passados = list.filter(a => new Date(a.dataHora) <  now);
@@ -120,17 +128,18 @@ async function loadAppointments() {
         html += futuros.map(a => `
             <div style="border-left:3px solid var(--primary);padding:8px 12px;margin-bottom:8px;background:var(--primary-light);border-radius:0 6px 6px 0">
                 <div style="font-weight:600;font-size:14px">${formatDate(a.dataHora)}</div>
-                <div style="font-size:12px;color:var(--muted)">Agendado em: ${formatDate(a.createdAt)}</div>
+                <div style="font-size:12px;color:var(--muted)">Médico: ${a.nomeMedico || "—"} · Status: ${statusLabel(a)}</div>
             </div>`).join("");
     }
 
     if (passados.length > 0) {
         html += `<p style="font-size:12px;color:var(--muted);margin:12px 0 8px;font-weight:600">HISTÓRICO DE CONSULTAS</p>`;
-        html += `<table><thead><tr><th>Data</th><th>Marcado em</th></tr></thead><tbody>`;
+        html += `<table><thead><tr><th>Data</th><th>Médico</th><th>Status</th></tr></thead><tbody>`;
         html += passados.map(a => `
             <tr>
                 <td>${formatDate(a.dataHora)}</td>
-                <td>${formatDate(a.createdAt)}</td>
+                <td>${a.nomeMedico || "—"}</td>
+                <td>${statusLabel(a)}</td>
             </tr>`).join("");
         html += `</tbody></table>`;
     }

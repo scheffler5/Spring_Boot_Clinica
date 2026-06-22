@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface AgendamentoRepository extends JpaRepository<Agendamento, UUID> {
-    boolean existsByDataHora(LocalDateTime dataHora);
+    boolean existsByMedicoIdAndDataHora(UUID medicoId, LocalDateTime dataHora);
     List<Agendamento> findAllByPacienteId(UUID pacienteId);
+    List<Agendamento> findAllByMedicoId(UUID medicoId);
     List<Agendamento> findAllByDataHoraBetween(LocalDateTime inicio, LocalDateTime fim);
 }

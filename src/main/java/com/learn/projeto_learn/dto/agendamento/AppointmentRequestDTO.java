@@ -9,6 +9,8 @@ import java.util.UUID;
 public record AppointmentRequestDTO(
         @NotNull(message = "O ID do paciente é obrigatório")
         UUID pacienteId,
+        @NotNull(message = "O ID do médico é obrigatório")
+        UUID medicoId,
         @NotNull(message = "A data e hora são obrigatórias")
         @Future(message = "O agendamento deve ser para o futuro")
         LocalDateTime dataHora

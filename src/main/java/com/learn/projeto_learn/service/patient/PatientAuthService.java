@@ -33,16 +33,27 @@ public class PatientAuthService {
             throw new BusinessException("Este e-mail já está cadastrado no sistema.");
         }
 
-        pacienteRepository.findByCpf(sanitizeCpf(data.cpf())).ifPresent(existing -> {
-            if (usuarioRepository.existsByPaciente(existing)) {
-                throw new BusinessException(
-                        "Já existe uma conta para este CPF. Use a opção 'Recuperar senha' se esqueceu o acesso.",
-                        HttpStatus.CONFLICT);
-            }
-        });
-
         String cpfLimpo = sanitizeCpf(data.cpf());
+
         Paciente paciente = pacienteRepository.findByCpf(cpfLimpo)
+                .map(existing -> {
+                    if (usuarioRepository.existsByPaciente(existing)) {
+                        throw new BusinessException(
+                                "Já existe uma conta para este CPF. Use a opção 'Recuperar senha' se esqueceu o acesso.",
+                                HttpStatus.CONFLICT);
+                    }
+                    if (!existing.getNome().trim().equalsIgnoreCase(data.nome().trim())) {
+                        throw new BusinessException(
+                                "Os dados informados não correspondem ao cadastro existente para este CPF.",
+                                HttpStatus.UNPROCESSABLE_ENTITY);
+                    }
+                    if (!existing.getDataNascimento().equals(data.dataNascimento())) {
+                        throw new BusinessException(
+                                "Os dados informados não correspondem ao cadastro existente para este CPF.",
+                                HttpStatus.UNPROCESSABLE_ENTITY);
+                    }
+                    return existing;
+                })
                 .orElseGet(() -> {
                     Paciente novo = new Paciente(data.nome(), cpfLimpo, data.dataNascimento());
                     return pacienteRepository.save(novo);

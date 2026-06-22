@@ -2,6 +2,7 @@ package com.learn.projeto_learn.controller.agendamento;
 
 import com.learn.projeto_learn.dto.agendamento.AppointmentRequestDTO;
 import com.learn.projeto_learn.dto.agendamento.AppointmentResponseDTO;
+import com.learn.projeto_learn.dto.agendamento.AppointmentStatusDTO;
 import com.learn.projeto_learn.model.agendamento.Agendamento;
 import com.learn.projeto_learn.service.Agendamento.AgendamentoService;
 import jakarta.validation.Valid;
@@ -41,5 +42,11 @@ public class AgendamentoController {
     @GetMapping("/{id}")
     public ResponseEntity<AppointmentResponseDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(service.findById(id));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<AppointmentResponseDTO> updateStatus(@PathVariable UUID id,
+                                                               @RequestBody @Valid AppointmentStatusDTO data) {
+        return ResponseEntity.ok(service.updateStatus(id, data.status()));
     }
 }
