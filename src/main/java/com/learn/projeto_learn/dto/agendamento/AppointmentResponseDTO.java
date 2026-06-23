@@ -1,5 +1,6 @@
 package com.learn.projeto_learn.dto.agendamento;
 
+import com.learn.projeto_learn.model.User.Usuario;
 import com.learn.projeto_learn.model.agendamento.Agendamento;
 import com.learn.projeto_learn.model.agendamento.StatusAgendamento;
 
@@ -19,7 +20,13 @@ public record AppointmentResponseDTO(
     public AppointmentResponseDTO(Agendamento a) {
         this(a.getId(),
              a.getPaciente().getId(), a.getPaciente().getNome(),
-             a.getMedico().getId(), a.getMedico().getLogin(),
+             a.getMedico().getId(), nomeMedico(a.getMedico()),
              a.getDataHora(), a.getStatus(), a.getCreatedAt());
+    }
+
+    private static String nomeMedico(Usuario medico) {
+        return (medico.getNome() != null && !medico.getNome().isBlank())
+                ? medico.getNome()
+                : medico.getLogin();
     }
 }

@@ -12,4 +12,5 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, UUID> 
     List<Agendamento> findAllByPacienteId(UUID pacienteId);
     List<Agendamento> findAllByMedicoId(UUID medicoId);
     List<Agendamento> findAllByDataHoraBetween(LocalDateTime inicio, LocalDateTime fim);
+    List<Agendamento> findAllByMedicoIdAndDataHoraBetween(UUID medicoId, LocalDateTime inicio, LocalDateTime fim);
 }

@@ -10,7 +10,10 @@
 <header class="topbar">
     <h1>🩺 Clínica</h1>
     <span class="topbar-info" id="topbar-name"></span>
-    <button id="btn-logout" class="btn-logout">Sair</button>
+    <nav style="display:flex;gap:8px;align-items:center">
+        <a href="patient-dashboard.html" class="btn-logout" style="text-decoration:none">Minha Área</a>
+        <button id="btn-logout" class="btn-logout">Sair</button>
+    </nav>
 </header>
 
 <main class="patient-dashboard">
@@ -23,7 +26,27 @@
 
     <div class="card">
         <h2>🔍 Buscar médicos</h2>
-        <p style="color:var(--muted);font-size:14px">Em desenvolvimento — Task C</p>
+        <label for="filtro-especialidade">Especialidade</label>
+        <select id="filtro-especialidade">
+            <option value="">Todas as especialidades</option>
+        </select>
+    </div>
+
+    <div id="medicos-grid" class="card-grid">
+        <p class="empty-state">Carregando médicos...</p>
+    </div>
+
+    <!-- Painel de agendamento (aparece ao escolher um médico) -->
+    <div id="booking-panel" class="card hidden">
+        <h2>📅 Agendar com <span id="booking-medico-nome"></span></h2>
+        <p id="booking-medico-info" style="color:var(--muted);font-size:13px;margin-bottom:12px"></p>
+
+        <label for="booking-data">Escolha o dia</label>
+        <input id="booking-data" type="date">
+
+        <div id="slots-container" style="margin-top:16px">
+            <p class="empty-state">Selecione uma data para ver os horários.</p>
+        </div>
     </div>
 </main>
 

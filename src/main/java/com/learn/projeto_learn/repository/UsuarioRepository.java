@@ -1,5 +1,6 @@
 package com.learn.projeto_learn.repository;
 
+import com.learn.projeto_learn.model.User.Especialidade;
 import com.learn.projeto_learn.model.User.Usuario;
 import com.learn.projeto_learn.model.User.UserRole;
 import com.learn.projeto_learn.model.patient.Paciente;
@@ -18,4 +19,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
     boolean existsByPaciente(Paciente paciente);
     Optional<Usuario> findByPaciente(Paciente paciente);
     List<Usuario> findAllByRoleInAndAtivoTrue(Collection<UserRole> roles);
+    List<Usuario> findAllByRoleAndAtivoTrue(UserRole role);
+    List<Usuario> findAllByRoleAndEspecialidadeAndAtivoTrue(UserRole role, Especialidade especialidade);
 }
