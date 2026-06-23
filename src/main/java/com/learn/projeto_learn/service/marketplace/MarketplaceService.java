@@ -70,12 +70,14 @@ public class MarketplaceService {
                 disponibilidadeRepository.findAllByMedicoIdAndDiaSemanaAndAtivoTrue(medico.getId(), dia);
 
         List<LocalDateTime> slots = new ArrayList<>();
+        int duracao = medico.getDuracaoConsultaMinutos() != null ? medico.getDuracaoConsultaMinutos() : DEFAULT_DURACAO_MIN;
+
         if (!disponibilidades.isEmpty()) {
             for (DisponibilidadeMedico d : disponibilidades) {
-                gerarSlots(slots, data, d.getHoraInicio(), d.getHoraFim(), d.getDuracaoConsultaMinutos());
+                gerarSlots(slots, data, d.getHoraInicio(), d.getHoraFim(), duracao);
             }
         } else if (dia != DayOfWeek.SATURDAY && dia != DayOfWeek.SUNDAY) {
-            gerarSlots(slots, data, DEFAULT_INICIO, DEFAULT_FIM, DEFAULT_DURACAO_MIN);
+            gerarSlots(slots, data, DEFAULT_INICIO, DEFAULT_FIM, duracao);
         }
 
         LocalDateTime inicioDia = data.atStartOfDay();
