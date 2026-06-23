@@ -48,7 +48,7 @@ public class Usuario implements UserDetails {
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean perfilCompleto = false;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "paciente_id", unique = true, nullable = true)
     private Paciente paciente;
 
