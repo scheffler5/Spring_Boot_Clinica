@@ -13,12 +13,17 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
+
     UserDetails findByLogin(String login);
     boolean existsByEmail(String email);
     Optional<Usuario> findByEmail(String email);
     boolean existsByPaciente(Paciente paciente);
     Optional<Usuario> findByPaciente(Paciente paciente);
+
     List<Usuario> findAllByRoleInAndAtivoTrue(Collection<UserRole> roles);
     List<Usuario> findAllByRoleAndAtivoTrue(UserRole role);
     List<Usuario> findAllByRoleAndEspecialidadeAndAtivoTrue(UserRole role, Especialidade especialidade);
+    List<Usuario> findAllByRoleAndCidadeContainingIgnoreCaseAndAtivoTrue(UserRole role, String cidade);
+    List<Usuario> findAllByRoleAndEspecialidadeAndCidadeContainingIgnoreCaseAndAtivoTrue(
+            UserRole role, Especialidade especialidade, String cidade);
 }

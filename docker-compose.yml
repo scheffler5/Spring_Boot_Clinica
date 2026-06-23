@@ -24,6 +24,15 @@ services:
       - "127.0.0.1:1025:1025"
       - "127.0.0.1:8025:8025"
 
+  mongo:
+    image: mongo:7-jammy
+    container_name: clinica_mongo
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
   app:
     build: .
     container_name: clinica_app
@@ -31,6 +40,8 @@ services:
       db:
         condition: service_healthy
       mailhog:
+        condition: service_started
+      mongo:
         condition: service_started
     env_file:
       - path: .env
@@ -54,10 +65,18 @@ services:
       DDL_AUTO:           update
       SHOW_SQL:           "false"
       EMAIL_DOMAIN_CHECK: ${EMAIL_DOMAIN_CHECK:-false}
+      SPRING_MONGODB_URI: mongodb://mongo:27017/clinica_chat
+      SPRING_WEB_RESOURCES_STATIC_LOCATIONS: "file:static/,classpath:/static/"
+      SPRING_WEB_RESOURCES_CACHE_PERIOD: "0"
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: "10MB"
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: "11MB"
 
+    volumes:
+      - ./src/main/resources/static:/app/static
     ports:
       - "8080:8080"
     restart: unless-stopped
 
 volumes:
   postgres_data:
+  mongo_data:

@@ -26,6 +26,8 @@ public class TokenService {
             return JWT.create()
                     .withIssuer("auth-api")
                     .withSubject(usuario.getLogin())
+                    .withClaim("id", usuario.getId().toString())
+                    .withClaim("role", usuario.getRole().name())
                     .withExpiresAt(genExpirationDate())
                     .sign(algorithm);
         } catch (JWTCreationException exception) {

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon.ico">
+    <title>Clínica — Chat</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/chat.css">
+</head>
+<body>
+
+<header class="topbar" style="z-index:10;position:relative">
+    <div style="display:flex;align-items:center;gap:10px">
+        <button id="btn-voltar" class="btn-logout" style="font-size:13px">← Voltar</button>
+        <h1>💬 Conversas</h1>
+    </div>
+    <span class="topbar-info" id="topbar-nome"></span>
+    <button id="btn-logout" class="btn-logout">Sair</button>
+</header>
+
+<div class="chat-layout">
+
+    <!-- Lista de conversas -->
+    <aside class="chat-sidebar">
+        <div class="chat-sidebar-header">💬 Minhas conversas</div>
+        <div class="chat-list" id="chat-list">
+            <div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">
+                Carregando...
+            </div>
+        </div>
+    </aside>
+
+    <!-- Conversa ativa -->
+    <div class="chat-main" id="chat-main">
+        <div class="chat-no-selection">
+            <span>💬</span>
+            <p>Selecione uma conversa para começar</p>
+        </div>
+    </div>
+
+</div>
+
+<script src="js/sockjs.min.js"></script>
+<script src="js/stomp.umd.min.js"></script>
+<script src="js/chat.js"></script>
+</body>
+</html>

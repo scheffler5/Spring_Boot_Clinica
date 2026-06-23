@@ -2,54 +2,64 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clínica — Agendar Consulta</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/marketplace.css">
+    <link rel="stylesheet" href="css/tour.css">
 </head>
 <body class="patient">
+
 <header class="topbar">
     <h1>🩺 Clínica</h1>
     <span class="topbar-info" id="topbar-name"></span>
     <nav style="display:flex;gap:8px;align-items:center">
-        <a href="patient-dashboard.html" class="btn-logout" style="text-decoration:none">Minha Área</a>
+        <a href="patient-dashboard.html" class="btn-logout" style="text-decoration:none">Minhas Consultas</a>
         <button id="btn-logout" class="btn-logout">Sair</button>
     </nav>
 </header>
 
-<main class="patient-dashboard">
-    <div id="message" class="message hidden"></div>
-
-    <div class="welcome-banner">
-        <h2 id="welcome-name">Olá!</h2>
-        <p>Encontre um médico e agende sua consulta</p>
-    </div>
-
-    <div class="card">
-        <h2>🔍 Buscar médicos</h2>
-        <label for="filtro-especialidade">Especialidade</label>
+<div class="mp-hero">
+    <h1>Encontre seu médico</h1>
+    <p>Consulte profissionais disponíveis e agende online</p>
+    <div class="mp-filters">
         <select id="filtro-especialidade">
             <option value="">Todas as especialidades</option>
         </select>
+        <input id="filtro-cidade" type="text" placeholder="🏙 Cidade (ex: São Paulo)">
     </div>
+</div>
 
-    <div id="medicos-grid" class="card-grid">
+<div class="mp-body">
+    <div class="mp-count" id="mp-count"></div>
+    <div class="mp-grid" id="medicos-grid">
         <p class="empty-state">Carregando médicos...</p>
     </div>
+</div>
 
-    <!-- Painel de agendamento (aparece ao escolher um médico) -->
-    <div id="booking-panel" class="card hidden">
-        <h2>📅 Agendar com <span id="booking-medico-nome"></span></h2>
-        <p id="booking-medico-info" style="color:var(--muted);font-size:13px;margin-bottom:12px"></p>
-
-        <label for="booking-data">Escolha o dia</label>
-        <input id="booking-data" type="date">
-
-        <div id="slots-container" style="margin-top:16px">
-            <p class="empty-state">Selecione uma data para ver os horários.</p>
+<div class="confirm-overlay hidden" id="confirm-overlay">
+    <div class="confirm-box">
+        <h3>Confirmar agendamento</h3>
+        <p id="confirm-text"></p>
+        <p class="cancellation-info">
+            Cancelamento gratuito até 24h antes da consulta.
+        </p>
+        <div class="confirm-actions">
+            <button class="btn-cancel-action" id="confirm-cancel">Voltar</button>
+            <button class="btn-primary" id="confirm-ok" style="flex:1;margin:0">Confirmar</button>
         </div>
     </div>
-</main>
+</div>
 
+<div id="message" class="message hidden"
+     style="position:fixed;bottom:20px;right:20px;max-width:360px;z-index:999"></div>
+
+<script src="js/tour.js"></script>
 <script src="js/patient-marketplace.js"></script>
+<link rel="stylesheet" href="css/chat-widget.css">
+<script src="js/sockjs.min.js"></script>
+<script src="js/stomp.umd.min.js"></script>
+<script src="js/chat-widget.js"></script>
 </body>
 </html>

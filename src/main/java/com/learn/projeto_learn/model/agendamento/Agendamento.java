@@ -1,4 +1,5 @@
 package com.learn.projeto_learn.model.agendamento;
+
 import com.learn.projeto_learn.model.User.Usuario;
 import com.learn.projeto_learn.model.patient.Paciente;
 import jakarta.persistence.*;
@@ -20,6 +21,7 @@ public class Agendamento {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
     @ManyToOne
     @JoinColumn(name = "paciente_id", nullable = false)
     private Paciente paciente;
@@ -35,13 +37,16 @@ public class Agendamento {
     @Column(nullable = false)
     private StatusAgendamento status = StatusAgendamento.AGENDADO;
 
+    @Column(columnDefinition = "TEXT")
+    private String motivoCancelamento;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     public Agendamento(Paciente paciente, Usuario medico, LocalDateTime dataHora) {
         this.paciente = paciente;
-        this.medico = medico;
+        this.medico   = medico;
         this.dataHora = dataHora;
-        this.status = StatusAgendamento.AGENDADO;
+        this.status   = StatusAgendamento.AGENDADO;
     }
 }

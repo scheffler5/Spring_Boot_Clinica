@@ -3,12 +3,14 @@ package com.learn.projeto_learn.controller.agendamento;
 import com.learn.projeto_learn.dto.agendamento.AppointmentRequestDTO;
 import com.learn.projeto_learn.dto.agendamento.AppointmentResponseDTO;
 import com.learn.projeto_learn.dto.agendamento.AppointmentStatusDTO;
+import com.learn.projeto_learn.model.User.Usuario;
 import com.learn.projeto_learn.model.agendamento.Agendamento;
 import com.learn.projeto_learn.service.Agendamento.AgendamentoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -20,8 +22,7 @@ import java.util.UUID;
 @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONIST', 'MEDIC')")
 public class AgendamentoController {
 
-    @Autowired
-    private AgendamentoService service;
+    @Autowired private AgendamentoService service;
 
     @PostMapping
     public ResponseEntity<AppointmentResponseDTO> create(@RequestBody @Valid AppointmentRequestDTO data,
@@ -29,6 +30,12 @@ public class AgendamentoController {
         Agendamento appointment = service.createAppointment(data);
         var uri = uriBuilder.path("/appointments/{id}").buildAndExpand(appointment.getId()).toUri();
         return ResponseEntity.created(uri).body(new AppointmentResponseDTO(appointment));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<AppointmentResponseDTO> cancelar(@PathVariable UUID id,
+                                                           @AuthenticationPrincipal Usuario usuario) {
+        return ResponseEntity.ok(service.cancelar(id, usuario));
     }
 
     @GetMapping

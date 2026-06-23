@@ -31,8 +31,12 @@ public class MedicoService {
         medico.setNome(data.nome());
         medico.setCrm(data.crm());
         medico.setEspecialidade(data.especialidade());
+        medico.setCidade(data.cidade());
         medico.setValorConsulta(data.valorConsulta());
         medico.setDuracaoConsultaMinutos(data.duracaoConsultaMinutos());
+        medico.setDescricao(data.descricao());
+        medico.setUniversidade(data.universidade());
+        medico.setAnoFormacao(data.anoFormacao());
         medico.setPerfilCompleto(true);
         return new MedicoResponseDTO(usuarioRepository.save(medico));
     }

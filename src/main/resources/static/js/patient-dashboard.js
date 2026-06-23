@@ -74,7 +74,22 @@ async function loadProfile() {
     document.getElementById("topbar-name").textContent = nome;
     document.getElementById("welcome-name").textContent = "Olá, " + nome.split(" ")[0] + "!";
 
+    const avatarHtml = p.fotoUrl
+        ? `<img src="${p.fotoUrl}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--primary-light)" onerror="this.style.display='none'">`
+        : `<div style="width:80px;height:80px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:36px">👤</div>`;
+
     document.getElementById("profile-grid").innerHTML = `
+        <div style="grid-column:1/-1;display:flex;align-items:center;gap:20px;margin-bottom:8px">
+            <div id="patient-avatar-wrap" style="position:relative;cursor:pointer" title="Clique para trocar a foto" onclick="document.getElementById('input-foto-paciente').click()">
+                ${avatarHtml}
+                <div style="position:absolute;bottom:0;right:0;background:var(--primary);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.3)">✏️</div>
+            </div>
+            <div>
+                <div style="font-weight:700;font-size:16px">${p.nome}</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px">Clique na foto para atualizar</div>
+            </div>
+            <input type="file" id="input-foto-paciente" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadFotoPaciente(this)">
+        </div>
         <div class="profile-item">
             <label>Nome completo</label>
             <span>${p.nome}</span>
@@ -94,57 +109,132 @@ async function loadProfile() {
     `;
 }
 
+window.uploadFotoPaciente = async function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const wrap = document.getElementById("patient-avatar-wrap");
+    wrap.style.opacity = "0.5";
+
+    const form = new FormData();
+    form.append("arquivo", file);
+
+    try {
+        const res = await fetch(`${API}/patient/foto`, {
+            method: "POST",
+            headers: { Authorization: "Bearer " + token },
+            body: form
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            showMsg(err.message || "Erro ao enviar foto.", "error");
+            return;
+        }
+        const data = await res.json();
+        const novaUrl = data.fotoUrl;
+        const img = wrap.querySelector("img") || wrap.querySelector("div");
+        if (novaUrl) {
+            wrap.innerHTML = `
+                <img src="${novaUrl}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--primary-light)">
+                <div style="position:absolute;bottom:0;right:0;background:var(--primary);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 1px 4px rgba(0,0,0,.3)">✏️</div>
+                <input type="file" id="input-foto-paciente" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadFotoPaciente(this)">`;
+        }
+        showMsg("Foto atualizada com sucesso!", "success");
+    } catch {
+        showMsg("Erro ao enviar foto.", "error");
+    } finally {
+        wrap.style.opacity = "1";
+        input.value = "";
+    }
+};
+
 function formatCpf(cpf) {
     if (!cpf || cpf.length !== 11) return cpf;
     return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 }
 
 
+function avatarMedico(a, size = 44) {
+    const s = `width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0`;
+    if (a.fotoMedicoUrl) {
+        return `<img src="${a.fotoMedicoUrl}" style="${s}" onerror="this.outerHTML='<div style=\'${s};background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:${size*0.45}px\'>🩺</div>'">`;
+    }
+    return `<div style="${s};background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:${size*0.45}px">🩺</div>`;
+}
+
 async function loadAppointments() {
     const res = await apiFetch("/patient/appointments");
     if (!res.ok) { showMsg("Erro ao carregar agendamentos.", "error"); return; }
 
-    const list = await res.json();
+    const list      = await res.json();
     const container = document.getElementById("appointments-container");
 
     if (list.length === 0) {
-        container.innerHTML = '<p class="empty-state">Nenhum agendamento encontrado.</p>';
+        container.innerHTML = '<p class="empty-state">Nenhum agendamento ainda. <a href="patient-marketplace.html">Agendar consulta →</a></p>';
         return;
     }
 
-    const STATUS_LABELS = {
-        AGENDADO: "Agendado",
-        CONFIRMADO: "Confirmado",
-        CANCELADO: "Cancelado",
-        REALIZADO: "Realizado",
-    };
-    const statusLabel = a => STATUS_LABELS[a.status] || a.status || "—";
-
     const now = new Date();
-    const futuros  = list.filter(a => new Date(a.dataHora) >= now);
-    const passados = list.filter(a => new Date(a.dataHora) <  now);
+
+    const proximas   = list.filter(a => new Date(a.dataHora) >= now && a.status !== "CANCELADO");
+    const realizadas = list.filter(a => new Date(a.dataHora) <  now && a.status === "REALIZADO");
+    const canceladas = list.filter(a => a.status === "CANCELADO");
 
     let html = "";
 
-    if (futuros.length > 0) {
-        html += `<p style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600">PRÓXIMAS CONSULTAS</p>`;
-        html += futuros.map(a => `
-            <div style="border-left:3px solid var(--primary);padding:8px 12px;margin-bottom:8px;background:var(--primary-light);border-radius:0 6px 6px 0">
-                <div style="font-weight:600;font-size:14px">${formatDate(a.dataHora)}</div>
-                <div style="font-size:12px;color:var(--muted)">Médico: ${a.nomeMedico || "—"} · Status: ${statusLabel(a)}</div>
+    // ── Próximas ──────────────────────────────────────────────────────
+    if (proximas.length > 0) {
+        html += `<p class="appt-section-label">Próximas consultas</p>`;
+        html += proximas.map(a => `
+            <div class="appt-card appt-upcoming">
+                ${avatarMedico(a, 48)}
+                <div class="appt-info">
+                    <div class="appt-medico">${a.nomeMedico || "—"}</div>
+                    <div class="appt-data">${formatDate(a.dataHora)}</div>
+                    <span class="appt-badge appt-${a.status.toLowerCase()}">${a.status}</span>
+                </div>
+                <button class="btn-cancelar" onclick="cancelarConsulta('${a.id}')">Cancelar</button>
+            </div>`).join("");
+    } else {
+        html += `<div class="appt-empty-upcoming">
+            <p>Nenhuma consulta agendada.</p>
+            <a href="patient-marketplace.html" class="btn-primary" style="display:inline-block;margin-top:10px;text-decoration:none;padding:10px 20px">
+                Agendar consulta
+            </a>
+        </div>`;
+    }
+
+    // ── Realizadas ────────────────────────────────────────────────────
+    if (realizadas.length > 0) {
+        html += `<p class="appt-section-label" style="margin-top:20px">Consultas realizadas</p>`;
+        html += realizadas.map(a => `
+            <div class="appt-card appt-past">
+                ${avatarMedico(a, 36)}
+                <div class="appt-info">
+                    <div class="appt-medico" style="font-size:13px">${a.nomeMedico || "—"}</div>
+                    <div class="appt-data" style="font-size:12px">${formatDate(a.dataHora)}</div>
+                </div>
+                <span class="appt-badge appt-realizado">Realizada</span>
             </div>`).join("");
     }
 
-    if (passados.length > 0) {
-        html += `<p style="font-size:12px;color:var(--muted);margin:12px 0 8px;font-weight:600">HISTÓRICO DE CONSULTAS</p>`;
-        html += `<table><thead><tr><th>Data</th><th>Médico</th><th>Status</th></tr></thead><tbody>`;
-        html += passados.map(a => `
-            <tr>
-                <td>${formatDate(a.dataHora)}</td>
-                <td>${a.nomeMedico || "—"}</td>
-                <td>${statusLabel(a)}</td>
-            </tr>`).join("");
-        html += `</tbody></table>`;
+    // ── Canceladas (accordion) ────────────────────────────────────────
+    if (canceladas.length > 0) {
+        html += `
+        <details class="appt-canceladas" style="margin-top:16px">
+            <summary style="cursor:pointer;font-size:12px;color:var(--muted);font-weight:600;user-select:none;list-style:none;display:flex;align-items:center;gap:6px">
+                <span>▶</span> ${canceladas.length} consulta${canceladas.length > 1 ? "s" : ""} cancelada${canceladas.length > 1 ? "s" : ""}
+            </summary>
+            <div style="margin-top:8px">
+                ${canceladas.map(a => `
+                <div class="appt-card appt-canceled">
+                    ${avatarMedico(a, 32)}
+                    <div class="appt-info">
+                        <div class="appt-medico" style="font-size:12px;color:var(--muted)">${a.nomeMedico || "—"}</div>
+                        <div class="appt-data" style="font-size:11px;color:var(--muted)">${formatDate(a.dataHora)}</div>
+                    </div>
+                </div>`).join("")}
+            </div>
+        </details>`;
     }
 
     container.innerHTML = html;
@@ -184,6 +274,77 @@ async function loadProntuarios() {
 }
 
 
+function confirmarCancelamento(id, onConfirm) {
+    const overlay = document.createElement("div");
+    overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;display:flex;align-items:center;justify-content:center";
+
+    overlay.innerHTML = `
+        <div style="background:#fff;border-radius:14px;padding:28px 24px;width:300px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.25)">
+            <p style="font-size:28px;margin-bottom:8px">⚠️</p>
+            <p style="font-size:16px;font-weight:600;margin-bottom:20px">Cancelar esta consulta?</p>
+            <div style="display:flex;gap:10px">
+                <button id="_pp_nao" style="flex:1;padding:11px;border:1px solid #ddd;border-radius:8px;background:#f5f5f5;cursor:pointer;font-size:14px">Não</button>
+                <button id="_pp_sim" style="flex:1;padding:11px;border:none;border-radius:8px;background:#c62828;color:#fff;cursor:pointer;font-size:14px;font-weight:600">Sim, cancelar</button>
+            </div>
+        </div>`;
+
+    document.body.appendChild(overlay);
+    overlay.querySelector("#_pp_nao").onclick = () => overlay.remove();
+    overlay.querySelector("#_pp_sim").onclick = async () => {
+        overlay.remove();
+        await onConfirm(id);
+    };
+}
+
+window.cancelarConsulta = function(id) {
+    confirmarCancelamento(id, async (agId) => {
+        const res = await apiFetch(`/appointments/${agId}`, { method: "DELETE" });
+        if (res.ok) {
+            showMsg("Consulta cancelada com sucesso.", "success");
+            loadAppointments();
+        } else {
+            const err = await res.json().catch(() => ({}));
+            showMsg(err.message || "Não foi possível cancelar a consulta.", "error");
+        }
+    });
+};
+
+const TOUR_PACIENTE = [
+    {
+        icon: "🎉",
+        title: "Bem-vindo ao portal!",
+        text:  "Este é o seu espaço pessoal de saúde. Aqui você gerencia todas as suas consultas médicas."
+    },
+    {
+        icon: "🔍",
+        title: "Agende uma consulta",
+        target: "a[href='patient-marketplace.html']",
+        text:  "Clique em \"Agendar nova consulta\" para encontrar médicos disponíveis, ver horários e fazer o agendamento online."
+    },
+    {
+        icon: "📋",
+        title: "Suas consultas",
+        target: "#appointments-container",
+        text:  "Aqui aparecem suas próximas consultas com foto do médico, data e horário. Consultas canceladas ficam escondidas para não poluir a tela."
+    },
+    {
+        icon: "📒",
+        title: "Histórico médico",
+        target: "#prontuarios-container",
+        text:  "Seus prontuários e histórico de atendimentos ficam registrados aqui para consulta futura."
+    },
+    {
+        icon: "✅",
+        title: "Tudo certo!",
+        text:  "Agora você já sabe como funciona o portal. Explore e agende sua primeira consulta!"
+    }
+];
+
 loadProfile();
 loadAppointments();
 loadProntuarios();
+
+setTimeout(() => {
+    const tour = new TourGuide("paciente-v1", TOUR_PACIENTE);
+    tour.start();
+}, 1000);

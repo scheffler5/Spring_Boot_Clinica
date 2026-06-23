@@ -2,36 +2,35 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clínica — Minha Área</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/tour.css">
 </head>
 <body class="patient">
 
 <header class="topbar">
     <h1>🩺 Minha Área</h1>
     <span class="topbar-info" id="topbar-name"></span>
+    
     <button id="btn-logout" class="btn-logout">Sair</button>
 </header>
 
 <main class="patient-dashboard">
 
-    
     <div class="welcome-banner">
         <h2 id="welcome-name">Olá!</h2>
         <p>Aqui você acompanha suas consultas e histórico de atendimentos.</p>
-        <a href="patient-marketplace.html" class="btn-primary" style="display:inline-block;margin-top:12px;text-decoration:none">
+        <a href="patient-marketplace.html" class="btn-primary"
+           style="display:inline-block;margin-top:12px;text-decoration:none">
             ＋ Agendar nova consulta
         </a>
     </div>
 
-    
     <div id="message" class="message hidden"></div>
 
-    
     <div class="card-grid">
-
-        
         <div class="card">
             <h2>📅 Meus Agendamentos</h2>
             <div id="appointments-container">
@@ -39,17 +38,14 @@
             </div>
         </div>
 
-        
         <div class="card">
             <h2>📋 Histórico Médico</h2>
             <div id="prontuarios-container">
                 <p class="empty-state">Carregando...</p>
             </div>
         </div>
-
     </div>
 
-    
     <div class="card">
         <h2>👤 Meu Perfil</h2>
         <div class="profile-grid" id="profile-grid">
@@ -59,6 +55,12 @@
 
 </main>
 
+
+<script src="js/tour.js"></script>
 <script src="js/patient-dashboard.js"></script>
+<link rel="stylesheet" href="css/chat-widget.css">
+<script src="js/sockjs.min.js"></script>
+<script src="js/stomp.umd.min.js"></script>
+<script src="js/chat-widget.js"></script>
 </body>
 </html>

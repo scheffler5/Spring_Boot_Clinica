@@ -13,20 +13,26 @@ public record AppointmentResponseDTO(
         String nomePaciente,
         UUID medicoId,
         String nomeMedico,
+        String fotoMedicoUrl,
         LocalDateTime dataHora,
         StatusAgendamento status,
         LocalDateTime createdAt
 ) {
     public AppointmentResponseDTO(Agendamento a) {
-        this(a.getId(),
-             a.getPaciente().getId(), a.getPaciente().getNome(),
-             a.getMedico().getId(), nomeMedico(a.getMedico()),
-             a.getDataHora(), a.getStatus(), a.getCreatedAt());
+        this(
+            a.getId(),
+            a.getPaciente().getId(),
+            a.getPaciente().getNome(),
+            a.getMedico().getId(),
+            nomeMedico(a.getMedico()),
+            a.getMedico().getFotoUrl(),
+            a.getDataHora(),
+            a.getStatus(),
+            a.getCreatedAt()
+        );
     }
 
-    private static String nomeMedico(Usuario medico) {
-        return (medico.getNome() != null && !medico.getNome().isBlank())
-                ? medico.getNome()
-                : medico.getLogin();
+    private static String nomeMedico(Usuario m) {
+        return (m.getNome() != null && !m.getNome().isBlank()) ? m.getNome() : m.getLogin();
     }
 }

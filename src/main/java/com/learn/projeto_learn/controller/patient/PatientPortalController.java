@@ -9,8 +9,10 @@ import com.learn.projeto_learn.dto.patient.CompleteProfileDTO;
 import com.learn.projeto_learn.dto.patient.EspecialidadeDTO;
 import com.learn.projeto_learn.dto.patient.MedicoMarketplaceDTO;
 import com.learn.projeto_learn.exception.BusinessException;
+import com.learn.projeto_learn.model.Imagem;
 import com.learn.projeto_learn.model.User.Especialidade;
 import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.repository.ImagemRepository;
 import com.learn.projeto_learn.service.Agendamento.AgendamentoService;
 import com.learn.projeto_learn.service.marketplace.MarketplaceService;
 import com.learn.projeto_learn.service.medicalrecord.ProntuarioService;
@@ -20,10 +22,15 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.Set;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,6 +46,9 @@ public class PatientPortalController {
     @Autowired private ProntuarioService prontuarioService;
     @Autowired private CaptchaService captchaService;
     @Autowired private MarketplaceService marketplaceService;
+    @Autowired private com.learn.projeto_learn.repository.UsuarioRepository usuarioRepository;
+    @Autowired private com.learn.projeto_learn.repository.DisponibilidadeMedicoRepository disponibilidadeRepository;
+    @Autowired private ImagemRepository imagemRepository;
 
 
     @PostMapping("/register")
@@ -57,7 +67,35 @@ public class PatientPortalController {
         if (user.getPaciente() == null) {
             throw new BusinessException("Conta sem vínculo com paciente.", HttpStatus.UNPROCESSABLE_ENTITY);
         }
-        return ResponseEntity.ok(new PatientResponseDTO(user.getPaciente()));
+        return ResponseEntity.ok(new PatientResponseDTO(user.getPaciente(), user.getFotoUrl()));
+    }
+
+    @PostMapping(value = "/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('PACIENTE')")
+    public ResponseEntity<PatientResponseDTO> uploadFoto(
+            @AuthenticationPrincipal Usuario principal,
+            @RequestParam("arquivo") MultipartFile arquivo) throws IOException {
+
+        if (arquivo == null || arquivo.isEmpty()) {
+            throw new BusinessException("Arquivo não pode ser vazio.");
+        }
+        String contentType = arquivo.getContentType();
+        if (contentType == null || !Set.of("image/jpeg", "image/png", "image/webp").contains(contentType)) {
+            throw new BusinessException("Apenas JPEG, PNG e WebP são aceitos.");
+        }
+        if (arquivo.getSize() > 10L * 1024 * 1024) {
+            throw new BusinessException("Imagem muito grande. Máximo 10 MB.");
+        }
+
+        Imagem imagem = imagemRepository.save(new Imagem(contentType, arquivo.getBytes()));
+        String url = "/imagens/" + imagem.getId();
+
+        Usuario paciente = usuarioRepository.findById(principal.getId())
+                .orElseThrow(() -> new BusinessException("Usuário não encontrado.", HttpStatus.NOT_FOUND));
+        paciente.setFotoUrl(url);
+        usuarioRepository.save(paciente);
+
+        return ResponseEntity.ok(new PatientResponseDTO(paciente.getPaciente(), url));
     }
 
     @PutMapping("/complete-profile")
@@ -77,8 +115,9 @@ public class PatientPortalController {
     @GetMapping("/medicos")
     @PreAuthorize("hasRole('PACIENTE')")
     public ResponseEntity<List<MedicoMarketplaceDTO>> listMedicos(
-            @RequestParam(required = false) Especialidade especialidade) {
-        return ResponseEntity.ok(marketplaceService.listMedicos(especialidade));
+            @RequestParam(required = false) Especialidade especialidade,
+            @RequestParam(required = false) String cidade) {
+        return ResponseEntity.ok(marketplaceService.listMedicos(especialidade, cidade));
     }
 
     @GetMapping("/medicos/{medicoId}/horarios")
@@ -115,5 +154,22 @@ public class PatientPortalController {
             throw new BusinessException("Conta sem vínculo com paciente.", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         return ResponseEntity.ok(prontuarioService.listByPaciente(user.getPaciente().getId()));
+    }
+
+    @GetMapping("/medicos/{id}/detalhes")
+    @PreAuthorize("hasRole('PACIENTE')")
+    public ResponseEntity<com.learn.projeto_learn.dto.medico.MedicoDetalhesDTO> getMedicoDetalhes(
+            @PathVariable java.util.UUID id) {
+        com.learn.projeto_learn.model.User.Usuario medico = usuarioRepository.findById(id)
+                .filter(m -> m.getRole() == com.learn.projeto_learn.model.User.UserRole.MEDIC
+                          && Boolean.TRUE.equals(m.getAtivo())
+                          && Boolean.TRUE.equals(m.getPerfilCompleto()))
+                .orElseThrow(() -> new BusinessException("Médico não encontrado.", HttpStatus.NOT_FOUND));
+
+        var disp = disponibilidadeRepository.findAllByMedicoIdAndAtivoTrue(id).stream()
+                .map(com.learn.projeto_learn.dto.medico.DisponibilidadeResponseDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(new com.learn.projeto_learn.dto.medico.MedicoDetalhesDTO(medico, disp));
     }
 }

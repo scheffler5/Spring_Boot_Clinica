@@ -59,6 +59,21 @@ public class Usuario implements UserDetails {
     @Column(length = 20)
     private String crm;
 
+    @Column(length = 100)
+    private String cidade;
+
+    @Column(columnDefinition = "TEXT")
+    private String descricao;
+
+    @Column(length = 150)
+    private String universidade;
+
+    @Column
+    private Integer anoFormacao;
+
+    @Column(columnDefinition = "TEXT")
+    private String fotoUrl;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal valorConsulta;
 

@@ -17,6 +17,9 @@ public record MedicoProfileDTO(
         @NotNull(message = "Especialidade é obrigatória")
         Especialidade especialidade,
 
+        @Size(max = 100, message = "Cidade deve ter no máximo 100 caracteres")
+        String cidade,
+
         @NotNull(message = "Valor da consulta é obrigatório")
         @DecimalMin(value = "0.01", message = "Valor deve ser maior que zero")
         BigDecimal valorConsulta,
@@ -24,5 +27,14 @@ public record MedicoProfileDTO(
         @NotNull(message = "Duração da consulta é obrigatória")
         @Min(value = 15, message = "Duração mínima é 15 minutos")
         @Max(value = 120, message = "Duração máxima é 120 minutos")
-        Integer duracaoConsultaMinutos
+        Integer duracaoConsultaMinutos,
+
+        @Size(max = 2000, message = "Descrição deve ter no máximo 2000 caracteres")
+        String descricao,
+
+        @Size(max = 150, message = "Universidade deve ter no máximo 150 caracteres")
+        String universidade,
+
+        @Min(value = 1950, message = "Ano inválido")
+        Integer anoFormacao
 ) {}

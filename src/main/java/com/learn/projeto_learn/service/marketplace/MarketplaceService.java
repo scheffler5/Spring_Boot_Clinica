@@ -38,9 +38,7 @@ public class MarketplaceService {
     @Autowired private AgendamentoRepository agendamentoRepository;
     @Autowired private DisponibilidadeMedicoRepository disponibilidadeRepository;
 
-    // Fallback: horário comercial seg-sex, slots de 1h, quando o médico não configurou agenda.
-    private static final LocalTime DEFAULT_INICIO = LocalTime.of(8, 0);
-    private static final LocalTime DEFAULT_FIM = LocalTime.of(18, 0);
+    // Duração padrão de consulta caso o médico não tenha definido no perfil.
     private static final int DEFAULT_DURACAO_MIN = 60;
 
     public List<EspecialidadeDTO> listEspecialidades() {
@@ -49,13 +47,24 @@ public class MarketplaceService {
                 .toList();
     }
 
-    public List<MedicoMarketplaceDTO> listMedicos(Especialidade especialidade) {
-        List<Usuario> medicos = (especialidade == null)
-                ? usuarioRepository.findAllByRoleAndAtivoTrue(UserRole.MEDIC)
-                : usuarioRepository.findAllByRoleAndEspecialidadeAndAtivoTrue(UserRole.MEDIC, especialidade);
+    public List<MedicoMarketplaceDTO> listMedicos(Especialidade especialidade, String cidade) {
+        List<Usuario> medicos;
+        boolean temEspecialidade = especialidade != null;
+        boolean temCidade        = cidade != null && !cidade.isBlank();
+
+        if (temEspecialidade && temCidade) {
+            medicos = usuarioRepository.findAllByRoleAndEspecialidadeAndCidadeContainingIgnoreCaseAndAtivoTrue(
+                    UserRole.MEDIC, especialidade, cidade);
+        } else if (temEspecialidade) {
+            medicos = usuarioRepository.findAllByRoleAndEspecialidadeAndAtivoTrue(UserRole.MEDIC, especialidade);
+        } else if (temCidade) {
+            medicos = usuarioRepository.findAllByRoleAndCidadeContainingIgnoreCaseAndAtivoTrue(UserRole.MEDIC, cidade);
+        } else {
+            medicos = usuarioRepository.findAllByRoleAndAtivoTrue(UserRole.MEDIC);
+        }
 
         return medicos.stream()
-                .filter(m -> m.getEspecialidade() != null) // somente médicos com perfil completo
+                .filter(m -> Boolean.TRUE.equals(m.getPerfilCompleto()) && m.getEspecialidade() != null)
                 .map(MedicoMarketplaceDTO::new)
                 .toList();
     }
@@ -69,15 +78,17 @@ public class MarketplaceService {
         List<DisponibilidadeMedico> disponibilidades =
                 disponibilidadeRepository.findAllByMedicoIdAndDiaSemanaAndAtivoTrue(medico.getId(), dia);
 
+        // Sem disponibilidade cadastrada para este dia da semana = sem horários.
+        // O médico só atende nos dias/horários que ele mesmo configurou.
+        if (disponibilidades.isEmpty()) {
+            return List.of();
+        }
+
         List<LocalDateTime> slots = new ArrayList<>();
         int duracao = medico.getDuracaoConsultaMinutos() != null ? medico.getDuracaoConsultaMinutos() : DEFAULT_DURACAO_MIN;
 
-        if (!disponibilidades.isEmpty()) {
-            for (DisponibilidadeMedico d : disponibilidades) {
-                gerarSlots(slots, data, d.getHoraInicio(), d.getHoraFim(), duracao);
-            }
-        } else if (dia != DayOfWeek.SATURDAY && dia != DayOfWeek.SUNDAY) {
-            gerarSlots(slots, data, DEFAULT_INICIO, DEFAULT_FIM, duracao);
+        for (DisponibilidadeMedico d : disponibilidades) {
+            gerarSlots(slots, data, d.getHoraInicio(), d.getHoraFim(), duracao);
         }
 
         LocalDateTime inicioDia = data.atStartOfDay();

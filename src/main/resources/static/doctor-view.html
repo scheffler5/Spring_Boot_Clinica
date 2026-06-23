@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon.ico">
+    <title id="page-title">Clínica — Médico</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/doctor-view.css">
+</head>
+<body class="patient">
+
+<div class="dv-hero">
+    <div class="dv-hero-inner">
+        <div style="width:100%">
+            <a href="patient-marketplace.html" class="dv-back">← Voltar</a>
+
+            <div style="display:flex;align-items:center;gap:20px">
+                <div class="dv-avatar" id="dv-avatar">🩺</div>
+                <div class="dv-hero-info">
+                    <h1 id="dv-nome">Carregando...</h1>
+                    <span class="badge-esp" id="dv-esp"></span>
+                    <div class="cidade" id="dv-cidade"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dv-body">
+
+    <!-- Info do médico -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="dv-card">
+            <div class="dv-stat">
+                <span class="icon">💰</span>
+                <div><div class="label">Valor da consulta</div><div class="value" id="dv-valor">—</div></div>
+            </div>
+            <div class="dv-stat">
+                <span class="icon">⏱</span>
+                <div><div class="label">Duração</div><div class="value" id="dv-duracao">—</div></div>
+            </div>
+            <div class="dv-stat" id="dv-stat-crm">
+                <span class="icon">🪪</span>
+                <div><div class="label">CRM</div><div class="value" id="dv-crm">—</div></div>
+            </div>
+            <div class="dv-stat" id="dv-stat-univ" style="display:none">
+                <span class="icon">🎓</span>
+                <div><div class="label">Formação</div><div class="value" id="dv-univ">—</div></div>
+            </div>
+            <div class="dv-stat" id="dv-stat-exp" style="display:none">
+                <span class="icon">⏳</span>
+                <div><div class="label">Experiência</div><div class="value" id="dv-exp">—</div></div>
+            </div>
+        </div>
+
+        <div class="dv-card" id="dv-card-desc" style="display:none">
+            <p style="font-weight:700;margin-bottom:10px">📝 Sobre o médico</p>
+            <p class="dv-desc" id="dv-desc"></p>
+        </div>
+
+        <div class="dv-card">
+            <p style="font-weight:700;margin-bottom:10px">🕒 Dias de atendimento</p>
+            <div class="dv-horarios" id="dv-horarios">
+                <p class="dv-empty">Nenhum horário cadastrado.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agendamento -->
+    <div class="dv-card" style="align-self:start;position:sticky;top:20px">
+        <div class="dv-book-title">📅 Agendar consulta</div>
+
+        <div id="book-message" class="message hidden" style="margin-bottom:12px"></div>
+
+        <div class="dv-date-row">
+            <input type="date" id="book-date" onchange="buscarSlots()">
+        </div>
+
+        <div class="slots-label" id="slots-label" style="display:none">Horários disponíveis</div>
+        <div class="slots-wrap" id="slots-wrap">
+            <p class="dv-empty">Selecione uma data para ver os horários disponíveis.</p>
+        </div>
+
+        <button class="btn-agendar" id="btn-agendar" disabled onclick="abrirConfirmacao()">
+            Confirmar agendamento
+        </button>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">
+            Cancelamento gratuito até 24h antes da consulta
+        </p>
+    </div>
+
+</div>
+
+<div id="message" class="message hidden"
+     style="position:fixed;bottom:20px;right:20px;max-width:360px;z-index:999"></div>
+
+<script src="js/doctor-view.js"></script>
+<link rel="stylesheet" href="css/chat-widget.css">
+<script src="js/sockjs.min.js"></script>
+<script src="js/stomp.umd.min.js"></script>
+<script src="js/chat-widget.js"></script>
+</body>
+</html>
