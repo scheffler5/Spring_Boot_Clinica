@@ -8,8 +8,13 @@
 #   ./run-e2e.sh PatientLoginE2ETest        # uma classe específica
 #   ./run-e2e.sh 'PatientLoginE2ETest#portalDoPacienteCarregaComFormularioDeLogin'  # um método
 #
+# Usa --network host (Linux) para que:
+#   - o container alcance o app em http://localhost:8080
+#   - a origem seja "localhost" = contexto seguro, exigido pelo crypto.subtle
+#     do captcha PoW (não funciona em origem HTTP não-localhost).
+#
 # Variáveis de ambiente:
-#   BASE_URL   URL do app (default: http://host.docker.internal:8080)
+#   BASE_URL   URL do app (default: http://localhost:8080)
 #   IMAGE      Imagem de teste (default: clinica-e2e:latest)
 #
 set -euo pipefail
@@ -17,7 +22,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 IMAGE="${IMAGE:-clinica-e2e:latest}"
-BASE_URL="${BASE_URL:-http://host.docker.internal:8080}"
+BASE_URL="${BASE_URL:-http://localhost:8080}"
 TEST_PATTERN="${1:-*E2ETest}"
 
 # Constrói a imagem de teste se ainda não existir
@@ -29,7 +34,7 @@ fi
 echo "==> Rodando testes E2E (pattern: $TEST_PATTERN) contra $BASE_URL"
 
 docker run --rm \
-    --add-host=host.docker.internal:host-gateway \
+    --network host \
     -v "$PWD":/workspace -w /workspace \
     -v clinica-m2:/root/.m2 \
     -e BASE_URL="$BASE_URL" \
