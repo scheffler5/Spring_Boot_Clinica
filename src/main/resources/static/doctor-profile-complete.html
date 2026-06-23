@@ -40,6 +40,14 @@
             <input id="valorConsulta" type="number" required min="0" step="0.01" placeholder="0,00">
             <span class="field-error hidden" data-field="valorConsulta"></span>
 
+            <label for="duracaoConsultaMinutos">Duração padrão da consulta</label>
+            <select id="duracaoConsultaMinutos" required>
+                <option value="30">30 minutos</option>
+                <option value="45">45 minutos</option>
+                <option value="60" selected>60 minutos (padrão)</option>
+            </select>
+            <span class="field-error hidden" data-field="duracaoConsultaMinutos"></span>
+
             <button type="submit" class="btn-primary" style="margin-top:24px">Salvar e acessar o sistema</button>
         </form>
     </div>

@@ -43,6 +43,7 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/patient/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/medico/especialidades").permitAll()
                         .requestMatchers("/error").permitAll()
 
                         .anyRequest().authenticated()

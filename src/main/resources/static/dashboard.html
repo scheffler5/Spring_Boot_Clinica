@@ -3,101 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clínica - Painel</title>
+    <title>Clínica — Dashboard Médico</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard-medico.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 </head>
 <body>
 <header class="topbar">
-    <h1>🏥 Clínica - Painel</h1>
+    <h1>🏥 Clínica</h1>
+    <span class="topbar-info" id="topbar-nome"></span>
     <button id="btn-logout" class="btn-logout">Sair</button>
 </header>
 
-<main class="dashboard">
-    <div id="message" class="message hidden card full"></div>
+<nav class="dashboard-nav">
+    <button class="nav-tab active" data-section="agenda">📅 Agenda</button>
+    <button class="nav-tab" data-section="disponibilidade">🕒 Disponibilidade</button>
+    <button class="nav-tab" data-section="estatisticas">📊 Estatísticas</button>
+</nav>
 
-    
-    <section class="card">
-        <h2>Novo paciente</h2>
-        <form id="form-patient">
-            <label for="pat-nome">Nome</label>
-            <input id="pat-nome" type="text" required>
+<main class="dashboard-main">
 
-            <label for="pat-cpf">CPF (somente números)</label>
-            <input id="pat-cpf" type="text" required maxlength="11" pattern="\d{11}">
-
-            <label for="pat-nascimento">Data de nascimento</label>
-            <input id="pat-nascimento" type="date" required>
-
-            <label for="pat-mae">Nome da mãe</label>
-            <input id="pat-mae" type="text">
-
-            <label for="pat-pai">Nome do pai</label>
-            <input id="pat-pai" type="text">
-
-            <button type="submit" class="btn-primary">Cadastrar paciente</button>
-        </form>
-    </section>
-
-    
-    <section class="card">
-        <h2>Novo agendamento</h2>
-        <form id="form-appointment">
-            <label for="app-paciente">Paciente</label>
-            <select id="app-paciente" required>
-                <option value="">Carregando...</option>
-            </select>
-
-            <label for="app-medico">Médico</label>
-            <select id="app-medico" required>
-                <option value="">Carregando...</option>
-            </select>
-
-            <label for="app-datahora">Data e hora</label>
-            <input id="app-datahora" type="datetime-local" required>
-
-            <button type="submit" class="btn-primary">Agendar</button>
-        </form>
-    </section>
-
-    
-    <section class="card full">
-        <h2>Pacientes</h2>
-        <div class="search-row">
-            <input id="search-input" type="text" placeholder="Buscar por nome...">
-            <button id="btn-search">Buscar</button>
+    <section id="section-agenda" class="dashboard-section">
+        <div class="stats-bar" id="stats-bar">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-atendidos">—</div>
+                <div class="stat-label">Atendidos este mês</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-agendados">—</div>
+                <div class="stat-label">Agendamentos futuros</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-value" id="stat-receita">—</div>
+                <div class="stat-label">Receita realizada</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-value" id="stat-projecao">—</div>
+                <div class="stat-label">Projeção futura</div>
+            </div>
         </div>
-        <table>
-            <thead>
-            <tr>
-                <th>Nome</th>
-                <th>CPF</th>
-                <th>ID</th>
-            </tr>
-            </thead>
-            <tbody id="patients-body">
-            <tr><td colspan="3">Carregando...</td></tr>
-            </tbody>
-        </table>
+
+        <div class="card" style="margin-top:20px">
+            <div id="calendar"></div>
+        </div>
     </section>
 
-    <section class="card full">
-        <h2>Agendamentos</h2>
-        <table>
-            <thead>
-            <tr>
-                <th>Paciente</th>
-                <th>Médico</th>
-                <th>Data e hora</th>
-                <th>Status</th>
-                <th>Ações</th>
-            </tr>
-            </thead>
-            <tbody id="appointments-body">
-            <tr><td colspan="5">Carregando...</td></tr>
-            </tbody>
-        </table>
+    <section id="section-disponibilidade" class="dashboard-section hidden">
+        <div class="card">
+            <h2>Minha disponibilidade</h2>
+            <div id="disponibilidade-list" style="margin-bottom:24px"></div>
+
+            <h3 style="margin-bottom:12px;font-size:15px;color:var(--primary-dark)">Adicionar horário</h3>
+            <form id="form-disponibilidade" novalidate>
+                <p id="duracao-info" style="font-size:13px;color:var(--muted);margin-bottom:12px"></p>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+                    <div>
+                        <label for="dia-semana">Dia da semana</label>
+                        <select id="dia-semana" required>
+                            <option value="">Selecione...</option>
+                            <option value="MONDAY">Segunda-feira</option>
+                            <option value="TUESDAY">Terça-feira</option>
+                            <option value="WEDNESDAY">Quarta-feira</option>
+                            <option value="THURSDAY">Quinta-feira</option>
+                            <option value="FRIDAY">Sexta-feira</option>
+                            <option value="SATURDAY">Sábado</option>
+                            <option value="SUNDAY">Domingo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="hora-inicio">Início do atendimento</label>
+                        <input id="hora-inicio" type="time" required>
+                    </div>
+                    <div>
+                        <label for="hora-fim">Fim do atendimento</label>
+                        <input id="hora-fim" type="time" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top:16px;width:auto;padding:10px 24px">
+                    Adicionar horário
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <section id="section-estatisticas" class="dashboard-section hidden">
+        <div class="card">
+            <h2>📊 Estatísticas mensais</h2>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+                <input type="month" id="mes-selecionado"
+                       style="padding:8px 12px;border:1px solid var(--border);border-radius:8px">
+                <button id="btn-atualizar-stats" class="btn-secondary">Atualizar</button>
+            </div>
+            <div class="stats-bar" id="stats-detalhado"></div>
+        </div>
     </section>
 </main>
+
+<div id="modal-paciente" class="modal hidden">
+    <div class="modal-content">
+        <button id="modal-fechar" class="modal-fechar">✕</button>
+        <h3 id="modal-titulo">Consulta</h3>
+        <div id="modal-corpo"></div>
+    </div>
+</div>
+
+<div id="message" class="message hidden"
+     style="position:fixed;bottom:20px;right:20px;max-width:360px;z-index:999"></div>
+
 <script src="js/dashboard.js"></script>
 </body>
 </html>

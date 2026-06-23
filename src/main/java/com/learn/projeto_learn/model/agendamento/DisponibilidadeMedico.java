@@ -37,9 +37,6 @@ public class DisponibilidadeMedico {
     @Column(nullable = false)
     private LocalTime horaFim;
 
-    @Column(nullable = false)
-    private Integer duracaoConsultaMinutos = 60;
-
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean ativo = true;
 
@@ -48,13 +45,11 @@ public class DisponibilidadeMedico {
     private LocalDateTime createdAt;
 
     public DisponibilidadeMedico(Usuario medico, DayOfWeek diaSemana,
-                                  LocalTime horaInicio, LocalTime horaFim,
-                                  Integer duracaoConsultaMinutos) {
-        this.medico = medico;
-        this.diaSemana = diaSemana;
+                                  LocalTime horaInicio, LocalTime horaFim) {
+        this.medico     = medico;
+        this.diaSemana  = diaSemana;
         this.horaInicio = horaInicio;
-        this.horaFim = horaFim;
-        this.duracaoConsultaMinutos = duracaoConsultaMinutos;
-        this.ativo = true;
+        this.horaFim    = horaFim;
+        this.ativo      = true;
     }
 }

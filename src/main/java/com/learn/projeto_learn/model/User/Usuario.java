@@ -62,6 +62,9 @@ public class Usuario implements UserDetails {
     @Column(precision = 10, scale = 2)
     private BigDecimal valorConsulta;
 
+    @Column(columnDefinition = "INTEGER DEFAULT 60")
+    private Integer duracaoConsultaMinutos = 60;
+
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean ativo = true;
 

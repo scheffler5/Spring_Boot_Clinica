@@ -1,7 +1,8 @@
-const API = "";
+const API   = "";
 const token = localStorage.getItem("token");
+const role  = localStorage.getItem("role");
 
-if (!token) {
+if (!token || (role !== "MEDIC" && role !== "ADMIN")) {
     window.location.href = "index.html";
 }
 
@@ -9,183 +10,162 @@ if (localStorage.getItem("perfilCompleto") !== "true") {
     window.location.href = "doctor-profile-complete.html";
 }
 
-const messageBox = document.getElementById("message");
-
-function showMessage(text, type) {
-    messageBox.textContent = text;
-    messageBox.className = "message " + type + " card full";
-    setTimeout(() => (messageBox.className = "message hidden"), 5000);
-}
-
 async function apiFetch(path, options = {}) {
     const res = await fetch(API + path, {
         ...options,
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + token,
-            ...(options.headers || {}),
-        },
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token, ...(options.headers || {}) }
     });
-
-    if (res.status === 401 || res.status === 403) {
-        localStorage.removeItem("token");
-        window.location.href = "index.html";
-        throw new Error("Sessão expirada");
-    }
-
+    if (res.status === 401 || res.status === 403) { window.location.href = "index.html"; throw new Error("Sessão expirada"); }
     return res;
 }
 
+function currency(v) { return Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
+function fmt(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+const msgBox = document.getElementById("message");
+function showMsg(text, type) { msgBox.textContent = text; msgBox.className = "message " + type; setTimeout(() => msgBox.className = "message hidden", 5000); }
+
 document.getElementById("btn-logout").addEventListener("click", () => {
-    localStorage.removeItem("token");
+    ["token", "role", "perfilCompleto"].forEach(k => localStorage.removeItem(k));
     window.location.href = "index.html";
 });
 
-async function loadPatients(search = "") {
-    const query = search ? `?search=${encodeURIComponent(search)}` : "";
-    const res = await apiFetch(`/patients${query}`);
-    const patients = await res.json();
+document.querySelectorAll(".nav-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+        document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".dashboard-section").forEach(s => s.classList.add("hidden"));
+        tab.classList.add("active");
+        document.getElementById("section-" + tab.dataset.section).classList.remove("hidden");
+    });
+});
 
-    const tbody = document.getElementById("patients-body");
-    const select = document.getElementById("app-paciente");
-
-    if (patients.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3">Nenhum paciente encontrado.</td></tr>';
-    } else {
-        tbody.innerHTML = patients
-            .map((p) => `<tr><td>${p.nome}</td><td>${p.cpf}</td><td>${p.id}</td></tr>`)
-            .join("");
-    }
-
-    select.innerHTML =
-        '<option value="">Selecione...</option>' +
-        patients.map((p) => `<option value="${p.id}">${p.nome}</option>`).join("");
+async function carregarPerfil() {
+    const res  = await apiFetch("/medico/perfil");
+    const data = await res.json();
+    document.getElementById("topbar-nome").textContent = data.nome || "";
+    const dur  = data.duracaoConsultaMinutos || 60;
+    const info = document.getElementById("duracao-info");
+    if (info) info.textContent = `Duração padrão das consultas: ${dur} minutos (configurada no seu perfil)`;
 }
 
-async function loadMedicos() {
-    const res = await apiFetch("/users/medicos");
-    const medicos = await res.json();
-    const select = document.getElementById("app-medico");
-    select.innerHTML =
-        '<option value="">Selecione...</option>' +
-        medicos.map((m) => `<option value="${m.id}">${m.login}</option>`).join("");
+async function carregarEstatisticas(mes) {
+    const query = mes ? `?mes=${mes}` : "";
+    const res   = await apiFetch(`/medico/estatisticas${query}`);
+    const data  = await res.json();
+    document.getElementById("stat-atendidos").textContent = data.totalAtendidosMes;
+    document.getElementById("stat-agendados").textContent = data.totalAgendadosMes;
+    document.getElementById("stat-receita").textContent   = currency(data.receitaRealizadaMes);
+    document.getElementById("stat-projecao").textContent  = currency(data.receitaProjetadaMes);
+    return data;
 }
 
-const STATUS_LABELS = {
-    AGENDADO: "Agendado",
-    CONFIRMADO: "Confirmado",
-    CANCELADO: "Cancelado",
-    REALIZADO: "Realizado",
-};
+let calendar;
 
-function formatDateTime(iso) {
-    if (!iso) return "—";
-    return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+async function carregarCalendario() {
+    const res    = await apiFetch("/medico/agenda");
+    const agenda = await res.json();
+
+    const statusColor = {
+        AGENDADO:   "#1976d2",
+        CONFIRMADO: "#2e7d32",
+        CANCELADO:  "#c62828",
+        REALIZADO:  "#6a1b9a"
+    };
+
+    const events = agenda.map(a => ({
+        id:    a.id,
+        title: a.nomePaciente,
+        start: a.dataHora,
+        color: statusColor[a.status] || "#607d8b",
+        extendedProps: { status: a.status, pacienteId: a.pacienteId, medicoId: a.medicoId }
+    }));
+
+    const el = document.getElementById("calendar");
+    calendar = new window.FullCalendar.Calendar(el, {
+        initialView:  "dayGridMonth",
+        locale:       "pt-br",
+        height:       "auto",
+        headerToolbar: {
+            left:   "prev,next today",
+            center: "title",
+            right:  "dayGridMonth,timeGridWeek,listWeek"
+        },
+        events,
+        eventClick: (info) => abrirModal(info.event)
+    });
+    calendar.render();
 }
 
-function statusActions(a) {
-    if (a.status === "CANCELADO" || a.status === "REALIZADO") return "—";
-    const btns = [];
-    if (a.status === "AGENDADO") {
-        btns.push(`<button onclick="changeStatus('${a.id}','CONFIRMADO')">Confirmar</button>`);
-    }
-    if (a.status === "AGENDADO" || a.status === "CONFIRMADO") {
-        btns.push(`<button onclick="changeStatus('${a.id}','REALIZADO')">Realizar</button>`);
-        btns.push(`<button onclick="changeStatus('${a.id}','CANCELADO')">Cancelar</button>`);
-    }
-    return btns.join(" ");
+function abrirModal(event) {
+    const props = event.extendedProps;
+    document.getElementById("modal-titulo").textContent = event.title;
+    document.getElementById("modal-corpo").innerHTML = `
+        <div class="modal-field"><label>Data / Hora</label><span>${fmt(event.start)}</span></div>
+        <div class="modal-field"><label>Status</label><span class="status-badge status-${props.status}">${props.status}</span></div>
+        <div class="modal-field"><label>ID do Paciente</label><span>${props.pacienteId}</span></div>
+    `;
+    document.getElementById("modal-paciente").classList.remove("hidden");
 }
 
-async function loadAppointments() {
-    const res = await apiFetch("/appointments");
-    const list = await res.json();
-    const tbody = document.getElementById("appointments-body");
+document.getElementById("modal-fechar").addEventListener("click", () => {
+    document.getElementById("modal-paciente").classList.add("hidden");
+});
 
-    if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">Nenhum agendamento.</td></tr>';
+async function carregarDisponibilidade() {
+    const res  = await apiFetch("/medico/disponibilidade");
+    const data = await res.json();
+    const el   = document.getElementById("disponibilidade-list");
+
+    if (data.length === 0) {
+        el.innerHTML = '<p style="color:var(--muted);font-size:14px">Nenhum horário cadastrado ainda.</p>';
         return;
     }
 
-    list.sort((a, b) => new Date(a.dataHora) - new Date(b.dataHora));
-    tbody.innerHTML = list
-        .map((a) => `<tr>
-            <td>${a.nomePaciente}</td>
-            <td>${a.nomeMedico}</td>
-            <td>${formatDateTime(a.dataHora)}</td>
-            <td>${STATUS_LABELS[a.status] || a.status}</td>
-            <td>${statusActions(a)}</td>
-        </tr>`)
-        .join("");
+    el.innerHTML = data.map(d => `
+        <div class="disponibilidade-item">
+            <span class="dia">${d.diaSemanaLabel}</span>
+            <span class="horario">${d.horaInicio} — ${d.horaFim} · ${d.duracaoConsultaMinutos} min</span>
+            <button class="btn-remover" onclick="removerDisponibilidade('${d.id}')">Remover</button>
+        </div>
+    `).join("");
 }
 
-async function changeStatus(id, status) {
-    const res = await apiFetch(`/appointments/${id}/status`, {
-        method: "PATCH",
-        body: JSON.stringify({ status }),
-    });
-    if (res.ok) {
-        showMessage("Status atualizado!", "success");
-        loadAppointments();
-    } else {
-        const err = await res.json().catch(() => null);
-        showMessage(err?.message || "Erro ao atualizar status.", "error");
-    }
-}
+window.removerDisponibilidade = async (id) => {
+    if (!confirm("Remover este horário?")) return;
+    const res = await apiFetch(`/medico/disponibilidade/${id}`, { method: "DELETE" });
+    if (res.ok) { showMsg("Horário removido.", "success"); carregarDisponibilidade(); }
+    else        { showMsg("Erro ao remover.", "error"); }
+};
 
-document.getElementById("btn-search").addEventListener("click", () => {
-    loadPatients(document.getElementById("search-input").value);
-});
-
-document.getElementById("form-patient").addEventListener("submit", async (e) => {
+document.getElementById("form-disponibilidade").addEventListener("submit", async e => {
     e.preventDefault();
-
     const body = {
-        nome: document.getElementById("pat-nome").value,
-        cpf: document.getElementById("pat-cpf").value,
-        dataNascimento: document.getElementById("pat-nascimento").value,
-        nomeMae: document.getElementById("pat-mae").value || null,
-        nomePai: document.getElementById("pat-pai").value || null,
+        diaSemana:  document.getElementById("dia-semana").value,
+        horaInicio: document.getElementById("hora-inicio").value,
+        horaFim:    document.getElementById("hora-fim").value
     };
-
-    const res = await apiFetch("/patients", {
-        method: "POST",
-        body: JSON.stringify(body),
-    });
-
-    if (res.ok) {
-        showMessage("Paciente cadastrado com sucesso!", "success");
-        e.target.reset();
-        loadPatients();
-    } else {
-        const err = await res.json().catch(() => null);
-        showMessage(err?.message || "Erro ao cadastrar paciente (verifique o CPF).", "error");
-    }
+    const res = await apiFetch("/medico/disponibilidade", { method: "POST", body: JSON.stringify(body) });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) { showMsg("Horário adicionado!", "success"); e.target.reset(); carregarDisponibilidade(); }
+    else        { showMsg(data.message || "Erro ao adicionar horário.", "error"); }
 });
 
-document.getElementById("form-appointment").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const body = {
-        pacienteId: document.getElementById("app-paciente").value,
-        medicoId: document.getElementById("app-medico").value,
-        dataHora: document.getElementById("app-datahora").value,
-    };
-
-    const res = await apiFetch("/appointments", {
-        method: "POST",
-        body: JSON.stringify(body),
-    });
-
-    if (res.ok) {
-        showMessage("Agendamento criado com sucesso!", "success");
-        e.target.reset();
-        loadAppointments();
-    } else {
-        const err = await res.json().catch(() => null);
-        showMessage(err?.message || "Erro ao criar agendamento.", "error");
-    }
+document.getElementById("btn-atualizar-stats").addEventListener("click", async () => {
+    const mes  = document.getElementById("mes-selecionado").value;
+    const data = await carregarEstatisticas(mes || undefined);
+    document.getElementById("stats-detalhado").innerHTML = `
+        <div class="stat-card"><div class="stat-value">${data.totalAtendidosMes}</div><div class="stat-label">Atendidos</div></div>
+        <div class="stat-card"><div class="stat-value">${data.totalAgendadosMes}</div><div class="stat-label">Agendados</div></div>
+        <div class="stat-card green"><div class="stat-value">${currency(data.receitaRealizadaMes)}</div><div class="stat-label">Receita realizada</div></div>
+        <div class="stat-card blue"><div class="stat-value">${currency(data.receitaProjetadaMes)}</div><div class="stat-label">Projeção</div></div>
+    `;
 });
 
-loadPatients();
-loadMedicos();
-loadAppointments();
+carregarPerfil();
+carregarEstatisticas();
+carregarCalendario();
+carregarDisponibilidade();
