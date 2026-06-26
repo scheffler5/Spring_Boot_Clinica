@@ -38,8 +38,8 @@ procedimentos e chat.
 
 A API usa **JWT (Bearer token)**, sem sessão (stateless). O fluxo típico:
 
-1. `GET /captcha/generate` → devolve `captchaId` e a imagem do desafio.
-2. `POST /auth/login` com login, senha e o CAPTCHA resolvido → devolve o `token`.
+1. `GET /captcha/generate` → devolve um desafio de proof-of-work (`challengeId`, `challenge`, `difficulty`).
+2. `POST /auth/login` com login, senha e o CAPTCHA resolvido (o `nonce` encontrado) → devolve o `token`.
 3. Nas demais requisições, envie o cabeçalho:
 
 ```
@@ -85,8 +85,8 @@ No Swagger UI, clique em **Authorize** e informe apenas o token (sem o prefixo `
 {
   "login": "medico@clinica.com",
   "password": "senha-secreta",
-  "captchaId": "uuid-do-captcha",
-  "captchaCode": "AB12"
+  "captchaId": "uuid-do-desafio",
+  "captchaCode": "284731"
 }
 ```
 
@@ -110,7 +110,16 @@ Resposta `201 Created` (sem corpo).
 |--------|---------------------|---------|---------------------------------|
 | GET    | `/captcha/generate` | Público | Gera um novo desafio CAPTCHA    |
 
-Resposta `200 OK`: `{ "captchaId": "...", "imagemBase64": "..." }`.
+O CAPTCHA é de **prova de trabalho (proof-of-work)** — na interface aparece apenas como
+uma caixinha "Não sou um robô", sem imagem nem quebra-cabeça. O cliente deve encontrar um
+`nonce` tal que `SHA-256("<challenge>:<nonce>")` comece com `difficulty` zeros e enviá-lo
+no login (campo `captchaCode`). O desafio é de uso único e expira em 10 minutos.
+
+Resposta `200 OK`:
+
+```json
+{ "challengeId": "uuid-do-desafio", "challenge": "a1b2c3...", "difficulty": 4 }
+```
 
 ---
 
