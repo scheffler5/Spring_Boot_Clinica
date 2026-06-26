@@ -38,5 +38,8 @@ docker run --rm \
     -v "$PWD":/workspace -w /workspace \
     -v clinica-m2:/root/.m2 \
     -e BASE_URL="$BASE_URL" \
+    -e DB_URL="${DB_URL:-jdbc:postgresql://localhost:5432/clinica}" \
+    -e DB_USER="${DB_USER:-clinica_user}" \
+    -e DB_PASS="${DB_PASS:-clinica_pass}" \
     "$IMAGE" \
     mvn -B test -Dtest="$TEST_PATTERN" -Dsurefire.failIfNoSpecifiedTests=false
