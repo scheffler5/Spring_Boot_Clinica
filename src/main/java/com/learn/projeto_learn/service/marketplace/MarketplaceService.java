@@ -38,7 +38,6 @@ public class MarketplaceService {
     @Autowired private AgendamentoRepository agendamentoRepository;
     @Autowired private DisponibilidadeMedicoRepository disponibilidadeRepository;
 
-    // Duração padrão de consulta caso o médico não tenha definido no perfil.
     private static final int DEFAULT_DURACAO_MIN = 60;
 
     public List<EspecialidadeDTO> listEspecialidades() {
@@ -78,8 +77,6 @@ public class MarketplaceService {
         List<DisponibilidadeMedico> disponibilidades =
                 disponibilidadeRepository.findAllByMedicoIdAndDiaSemanaAndAtivoTrue(medico.getId(), dia);
 
-        // Sem disponibilidade cadastrada para este dia da semana = sem horários.
-        // O médico só atende nos dias/horários que ele mesmo configurou.
         if (disponibilidades.isEmpty()) {
             return List.of();
         }

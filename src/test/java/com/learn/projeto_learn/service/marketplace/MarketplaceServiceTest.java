@@ -32,10 +32,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Testes unitários (base da pirâmide) da lógica de agendamento.
- * Sem Spring, sem banco, sem navegador — repositórios mockados.
- */
 @ExtendWith(MockitoExtension.class)
 class MarketplaceServiceTest {
 
@@ -45,7 +41,6 @@ class MarketplaceServiceTest {
 
     @InjectMocks MarketplaceService service;
 
-    // Data futura para garantir que todos os slots fiquem "no futuro".
     private final LocalDate DATA = LocalDate.now().plusDays(7);
 
     private Usuario medico(UUID id, Integer duracao) {

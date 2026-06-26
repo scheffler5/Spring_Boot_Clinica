@@ -3,6 +3,8 @@ package com.learn.projeto_learn.controller.procedimento;
 import com.learn.projeto_learn.dto.procedimento.ProcedimentoRequestDTO;
 import com.learn.projeto_learn.dto.procedimento.ProcedimentoResponseDTO;
 import com.learn.projeto_learn.service.procedimento.ProcedimentoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/procedimentos")
+@Tag(name = "Procedimentos", description = "Catálogo de procedimentos da clínica")
 public class ProcedimentoController {
 
     @Autowired
@@ -22,6 +25,7 @@ public class ProcedimentoController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Cria um procedimento (ADMIN)")
     public ResponseEntity<ProcedimentoResponseDTO> create(@RequestBody @Valid ProcedimentoRequestDTO data,
                                                           UriComponentsBuilder uriBuilder) {
         ProcedimentoResponseDTO response = service.create(data);
@@ -30,17 +34,20 @@ public class ProcedimentoController {
     }
 
     @GetMapping
+    @Operation(summary = "Lista os procedimentos ativos")
     public ResponseEntity<List<ProcedimentoResponseDTO>> list() {
         return ResponseEntity.ok(service.listActive());
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Busca um procedimento por ID")
     public ResponseEntity<ProcedimentoResponseDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Atualiza um procedimento (ADMIN)")
     public ResponseEntity<ProcedimentoResponseDTO> update(@PathVariable UUID id,
                                                           @RequestBody @Valid ProcedimentoRequestDTO data) {
         return ResponseEntity.ok(service.update(id, data));
@@ -48,6 +55,7 @@ public class ProcedimentoController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Desativa um procedimento (ADMIN)")
     public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
         service.deactivate(id);
         return ResponseEntity.noContent().build();

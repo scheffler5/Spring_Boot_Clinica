@@ -3,6 +3,8 @@ package com.learn.projeto_learn.controller.convenio;
 import com.learn.projeto_learn.dto.convenio.ConvenioRequestDTO;
 import com.learn.projeto_learn.dto.convenio.ConvenioResponseDTO;
 import com.learn.projeto_learn.service.convenio.ConvenioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/convenios")
+@Tag(name = "Convênios", description = "Cadastro de convênios médicos")
 public class ConvenioController {
 
     @Autowired
@@ -22,6 +25,7 @@ public class ConvenioController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Cria um convênio (ADMIN)")
     public ResponseEntity<ConvenioResponseDTO> create(@RequestBody @Valid ConvenioRequestDTO data,
                                                       UriComponentsBuilder uriBuilder) {
         ConvenioResponseDTO response = service.create(data);
@@ -30,17 +34,20 @@ public class ConvenioController {
     }
 
     @GetMapping
+    @Operation(summary = "Lista os convênios ativos")
     public ResponseEntity<List<ConvenioResponseDTO>> list() {
         return ResponseEntity.ok(service.listActive());
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Busca um convênio por ID")
     public ResponseEntity<ConvenioResponseDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Atualiza um convênio (ADMIN)")
     public ResponseEntity<ConvenioResponseDTO> update(@PathVariable UUID id,
                                                       @RequestBody @Valid ConvenioRequestDTO data) {
         return ResponseEntity.ok(service.update(id, data));
@@ -48,6 +55,7 @@ public class ConvenioController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Desativa um convênio (ADMIN)")
     public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
         service.deactivate(id);
         return ResponseEntity.noContent().build();

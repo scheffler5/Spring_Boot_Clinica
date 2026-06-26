@@ -6,6 +6,9 @@ spring.datasource.username=SEU_USUARIO
 spring.datasource.password=SUA_SENHA
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
+# As migracoes Flyway (src/main/resources/db/migration) rodam automaticamente no
+# start e corrigem constraints orfas em bancos antigos. O baseline e configurado
+# em codigo (config/FlywayConfig), entao nao precisa de propriedade aqui.
 
 # --- JWT ---
 api.security.token.secret=TROQUE_POR_UMA_CHAVE_SECRETA

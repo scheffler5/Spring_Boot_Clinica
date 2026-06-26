@@ -2,6 +2,8 @@ package com.learn.projeto_learn.controller;
 
 import com.learn.projeto_learn.model.Imagem;
 import com.learn.projeto_learn.repository.ImagemRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -16,12 +18,16 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/imagens")
+@Tag(name = "Imagens", description = "Servir imagens e anexos armazenados")
 public class ImagemController {
 
     @Autowired
     private ImagemRepository imagemRepository;
 
     @GetMapping("/{id}")
+    @Operation(summary = "Serve uma imagem/anexo por ID",
+            description = "Endpoint público. Retorna os bytes com o Content-Type original.",
+            security = {})
     public ResponseEntity<byte[]> servir(@PathVariable UUID id) {
         Imagem imagem = imagemRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Imagem não encontrada."));

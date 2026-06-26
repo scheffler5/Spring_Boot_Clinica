@@ -9,6 +9,8 @@ import com.learn.projeto_learn.model.User.Usuario;
 import com.learn.projeto_learn.repository.UsuarioRepository;
 import com.learn.projeto_learn.service.captcha.CaptchaService;
 import com.learn.projeto_learn.service.validation.EmailValidationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
+@Tag(name = "Autenticação", description = "Login, registro de médicos e listagem de usuários")
 public class AuthenticationController {
 
     @Autowired private TokenService          tokenService;
@@ -37,6 +40,9 @@ public class AuthenticationController {
     @Autowired private PasswordEncoder       passwordEncoder;
 
     @PostMapping("/login")
+    @Operation(summary = "Autentica e retorna um token JWT",
+            description = "Valida CAPTCHA e credenciais. Bloqueia o IP após múltiplas tentativas. Endpoint público.",
+            security = {})
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid AuthenticationDTO data,
                                                   HttpServletRequest request) {
         String ip = resolveIp(request);
@@ -74,6 +80,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
+    @Operation(summary = "Registra um novo médico",
+            description = "Cria um usuário com papel MEDIC após validar o CAPTCHA. Endpoint público.",
+            security = {})
     public ResponseEntity<Void> register(@RequestBody @Valid RegisterDTO data) {
         if (!captchaService.validate(data.captchaId(), data.captchaCode())) {
             throw new BusinessException("Verificação de segurança inválida.");
@@ -89,6 +98,7 @@ public class AuthenticationController {
 
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Lista todos os usuários", description = "Somente ADMIN.")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         return ResponseEntity.ok(repository.findAll().stream().map(UserResponseDTO::new).toList());
     }
