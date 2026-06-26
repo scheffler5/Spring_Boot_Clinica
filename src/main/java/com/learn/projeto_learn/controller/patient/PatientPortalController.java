@@ -18,6 +18,8 @@ import com.learn.projeto_learn.service.marketplace.MarketplaceService;
 import com.learn.projeto_learn.service.medicalrecord.ProntuarioService;
 import com.learn.projeto_learn.service.captcha.CaptchaService;
 import com.learn.projeto_learn.service.patient.PatientAuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -39,6 +41,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/patient")
+@Tag(name = "Portal do Paciente", description = "Auto-cadastro, perfil, marketplace de médicos e agendamentos do paciente")
 public class PatientPortalController {
 
     @Autowired private PatientAuthService patientAuthService;
@@ -50,8 +53,10 @@ public class PatientPortalController {
     @Autowired private com.learn.projeto_learn.repository.DisponibilidadeMedicoRepository disponibilidadeRepository;
     @Autowired private ImagemRepository imagemRepository;
 
-
     @PostMapping("/register")
+    @Operation(summary = "Auto-cadastro de paciente",
+            description = "Cria uma conta de paciente após validar o CAPTCHA. Endpoint público.",
+            security = {})
     public ResponseEntity<Void> register(@RequestBody @Valid PatientRegisterDTO data) {
         if (!captchaService.validate(data.captchaId(), data.captchaCode())) {
             throw new BusinessException("CAPTCHA inválido ou expirado.");
@@ -60,9 +65,9 @@ public class PatientPortalController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-
     @GetMapping("/me")
     @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Retorna o perfil do paciente autenticado")
     public ResponseEntity<PatientResponseDTO> getProfile(@AuthenticationPrincipal Usuario user) {
         if (user.getPaciente() == null) {
             throw new BusinessException("Conta sem vínculo com paciente.", HttpStatus.UNPROCESSABLE_ENTITY);
@@ -72,6 +77,8 @@ public class PatientPortalController {
 
     @PostMapping(value = "/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Envia a foto de perfil do paciente",
+            description = "Aceita JPEG, PNG ou WebP de até 10 MB (multipart/form-data).")
     public ResponseEntity<PatientResponseDTO> uploadFoto(
             @AuthenticationPrincipal Usuario principal,
             @RequestParam("arquivo") MultipartFile arquivo) throws IOException {
@@ -100,6 +107,8 @@ public class PatientPortalController {
 
     @PutMapping("/complete-profile")
     @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Completa o cadastro do paciente",
+            description = "Preenche os dados obrigatórios do perfil após o auto-cadastro.")
     public ResponseEntity<PatientResponseDTO> completeProfile(
             @AuthenticationPrincipal Usuario user,
             @RequestBody @Valid CompleteProfileDTO data) {
@@ -108,12 +117,15 @@ public class PatientPortalController {
 
     @GetMapping("/especialidades")
     @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Lista as especialidades disponíveis no marketplace")
     public ResponseEntity<List<EspecialidadeDTO>> listEspecialidades() {
         return ResponseEntity.ok(marketplaceService.listEspecialidades());
     }
 
     @GetMapping("/medicos")
     @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Busca médicos no marketplace",
+            description = "Filtra opcionalmente por especialidade e cidade.")
     public ResponseEntity<List<MedicoMarketplaceDTO>> listMedicos(
             @RequestParam(required = false) Especialidade especialidade,
             @RequestParam(required = false) String cidade) {
@@ -122,6 +134,7 @@ public class PatientPortalController {
 
     @GetMapping("/medicos/{medicoId}/horarios")
     @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Lista horários livres de um médico em uma data")
     public ResponseEntity<List<LocalDateTime>> getHorarios(
             @PathVariable UUID medicoId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
@@ -130,6 +143,8 @@ public class PatientPortalController {
 
     @PostMapping("/agendamentos")
     @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Agenda uma consulta",
+            description = "O paciente marca um horário disponível de um médico.")
     public ResponseEntity<AppointmentResponseDTO> book(
             @AuthenticationPrincipal Usuario user,
             @RequestBody @Valid BookingRequestDTO data) {
@@ -138,6 +153,7 @@ public class PatientPortalController {
 
     @GetMapping("/appointments")
     @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Lista os agendamentos do paciente autenticado")
     public ResponseEntity<List<AppointmentResponseDTO>> getMyAppointments(
             @AuthenticationPrincipal Usuario user) {
         if (user.getPaciente() == null) {
@@ -148,6 +164,7 @@ public class PatientPortalController {
 
     @GetMapping("/prontuarios")
     @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Lista os prontuários do paciente autenticado")
     public ResponseEntity<List<ProntuarioResponseDTO>> getMyProntuarios(
             @AuthenticationPrincipal Usuario user) {
         if (user.getPaciente() == null) {
@@ -158,6 +175,7 @@ public class PatientPortalController {
 
     @GetMapping("/medicos/{id}/detalhes")
     @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Detalha um médico e suas disponibilidades")
     public ResponseEntity<com.learn.projeto_learn.dto.medico.MedicoDetalhesDTO> getMedicoDetalhes(
             @PathVariable java.util.UUID id) {
         com.learn.projeto_learn.model.User.Usuario medico = usuarioRepository.findById(id)

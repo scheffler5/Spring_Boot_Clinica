@@ -16,8 +16,6 @@ public class MfaAttemptService {
 
     private final ConcurrentHashMap<String, MfaState> states = new ConcurrentHashMap<>();
 
-
-
     public int registerFailure(String email) {
         MfaState s = states.compute(email, (k, old) -> {
             int attempts = (old == null ? 0 : old.attempts()) + 1;
@@ -42,8 +40,6 @@ public class MfaAttemptService {
     public void registerSuccess(String email) {
         states.remove(email);
     }
-
-
 
     public boolean canResend(String email) {
         MfaState s = states.get(email);

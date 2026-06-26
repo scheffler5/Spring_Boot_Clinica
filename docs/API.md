@@ -1,579 +1,384 @@
-# Referência da API
+# API da Clínica — Referência REST
 
-Base URL: `http://localhost:8080`
+API REST do sistema de gestão de clínica médica (Spring Boot 4). Cobre autenticação,
+portal do paciente, portal do médico, agendamentos, prontuários, convênios,
+procedimentos e chat.
 
-Todas as respostas de erro seguem o formato:
+> **Documentação interativa (Swagger UI):** com a aplicação no ar, acesse
+> [`/swagger-ui.html`](http://localhost:8080/swagger-ui.html). O contrato OpenAPI bruto
+> fica em [`/v3/api-docs`](http://localhost:8080/v3/api-docs).
 
-```json
-{
-  "status": 400,
-  "error": "Bad Request",
-  "message": "Descrição do erro",
-  "timestamp": "2025-06-18T10:30:00",
-  "fieldErrors": [
-    { "field": "email", "message": "Formato de e-mail inválido" }
-  ]
-}
-```
+---
+
+## Sumário
+
+- [Autenticação](#autenticação)
+- [Papéis (roles)](#papéis-roles)
+- [Convenções](#convenções)
+- [Endpoints](#endpoints)
+  - [Autenticação (`/auth`)](#autenticação-auth)
+  - [CAPTCHA (`/captcha`)](#captcha-captcha)
+  - [Portal do Paciente (`/patient`)](#portal-do-paciente-patient)
+  - [Portal do Médico (`/medico`)](#portal-do-médico-medico)
+  - [Agendamentos (`/appointments`)](#agendamentos-appointments)
+  - [Pacientes — gestão (`/patients`)](#pacientes--gestão-patients)
+  - [Prontuários (`/prontuarios`)](#prontuários-prontuarios)
+  - [Convênios (`/convenios`)](#convênios-convenios)
+  - [Procedimentos (`/procedimentos`)](#procedimentos-procedimentos)
+  - [Usuários (`/users`)](#usuários-users)
+  - [Imagens (`/imagens`)](#imagens-imagens)
+  - [Chat REST (`/chat`)](#chat-rest-chat)
+  - [Chat em tempo real (WebSocket/STOMP)](#chat-em-tempo-real-websocketstomp)
+- [Modelos de dados](#modelos-de-dados)
+- [Tratamento de erros](#tratamento-de-erros)
 
 ---
 
 ## Autenticação
 
-### Fluxo de login (2 fatores)
+A API usa **JWT (Bearer token)**, sem sessão (stateless). O fluxo típico:
 
-```
-POST /captcha/generate  →  obtém captchaId + imagem
-POST /auth/login        →  valida senha + CAPTCHA → envia código MFA por e-mail
-POST /auth/verify-mfa   →  valida código MFA → retorna JWT
-```
+1. `GET /captcha/generate` → devolve `captchaId` e a imagem do desafio.
+2. `POST /auth/login` com login, senha e o CAPTCHA resolvido → devolve o `token`.
+3. Nas demais requisições, envie o cabeçalho:
 
-O JWT retornado deve ser enviado em todas as requisições autenticadas:
 ```
 Authorization: Bearer <token>
 ```
 
+O token expira de acordo com `api.security.token.expiration-hours` (padrão: 2 horas).
+No Swagger UI, clique em **Authorize** e informe apenas o token (sem o prefixo `Bearer`).
+
+## Papéis (roles)
+
+| Role           | Descrição                                   |
+|----------------|---------------------------------------------|
+| `ADMIN`        | Administração geral                         |
+| `MEDIC`        | Médico                                      |
+| `RECEPCIONIST` | Recepção                                    |
+| `PACIENTE`     | Paciente (acesso apenas ao próprio portal)  |
+
+## Convenções
+
+- **Base URL** (desenvolvimento): `http://localhost:8080`
+- **Formato:** JSON em requisições e respostas, exceto uploads (`multipart/form-data`)
+  e o endpoint de imagens (bytes binários).
+- **Datas/horas:** ISO-8601 (`2026-06-26`, `2026-06-26T14:30:00`).
+- **IDs:** UUID, salvo onde indicado.
+- A coluna **Auth** indica os papéis exigidos. "Público" = não exige token.
+
 ---
 
-### CAPTCHA
+## Endpoints
 
-#### `GET /captcha/generate`
-Gera uma imagem CAPTCHA para ser exibida ao usuário.
+### Autenticação (`/auth`)
 
-**Autenticação:** não requerida
+| Método | Caminho          | Auth     | Descrição                                  |
+|--------|------------------|----------|--------------------------------------------|
+| POST   | `/auth/login`    | Público  | Autentica e retorna um token JWT           |
+| POST   | `/auth/register` | Público  | Registra um novo usuário médico (`MEDIC`)  |
+| GET    | `/auth/users`    | `ADMIN`  | Lista todos os usuários                    |
 
-**Resposta `200`:**
+**`POST /auth/login`** — corpo:
+
 ```json
 {
+  "login": "medico@clinica.com",
+  "password": "senha-secreta",
   "captchaId": "uuid-do-captcha",
-  "image": "data:image/png;base64,iVBORw0..."
+  "captchaCode": "AB12"
 }
 ```
 
+Resposta `200 OK`:
+
+```json
+{ "token": "<jwt>", "role": "MEDIC", "perfilCompleto": false }
+```
+
+Erros: `401` credenciais inválidas, `403` conta desativada,
+`429` IP bloqueado por excesso de tentativas, `400` CAPTCHA inválido.
+
+**`POST /auth/register`** — corpo: `{ "login", "password", "captchaId", "captchaCode" }`.
+Resposta `201 Created` (sem corpo).
+
 ---
 
-### Login
+### CAPTCHA (`/captcha`)
 
-#### `POST /auth/login`
-Primeiro fator de autenticação. Valida senha e CAPTCHA, envia código MFA por e-mail.
+| Método | Caminho             | Auth    | Descrição                       |
+|--------|---------------------|---------|---------------------------------|
+| GET    | `/captcha/generate` | Público | Gera um novo desafio CAPTCHA    |
 
-**Autenticação:** não requerida
+Resposta `200 OK`: `{ "captchaId": "...", "imagemBase64": "..." }`.
 
-**Body:**
+---
+
+### Portal do Paciente (`/patient`)
+
+| Método | Caminho                                  | Auth       | Descrição                                |
+|--------|------------------------------------------|------------|------------------------------------------|
+| POST   | `/patient/register`                      | Público    | Auto-cadastro de paciente                |
+| GET    | `/patient/me`                            | `PACIENTE` | Perfil do paciente autenticado           |
+| POST   | `/patient/foto`                          | `PACIENTE` | Envia foto de perfil (multipart)         |
+| PUT    | `/patient/complete-profile`              | `PACIENTE` | Completa o cadastro                      |
+| GET    | `/patient/especialidades`                | `PACIENTE` | Lista especialidades do marketplace      |
+| GET    | `/patient/medicos`                       | `PACIENTE` | Busca médicos (filtros: especialidade, cidade) |
+| GET    | `/patient/medicos/{medicoId}/horarios`   | `PACIENTE` | Horários livres de um médico numa data (`?data=yyyy-MM-dd`) |
+| GET    | `/patient/medicos/{id}/detalhes`         | `PACIENTE` | Detalhes do médico e disponibilidades    |
+| POST   | `/patient/agendamentos`                  | `PACIENTE` | Agenda uma consulta                      |
+| GET    | `/patient/appointments`                  | `PACIENTE` | Agendamentos do paciente                 |
+| GET    | `/patient/prontuarios`                   | `PACIENTE` | Prontuários do paciente                  |
+
+**`POST /patient/register`** — corpo: `{ "login", "password", "captchaId", "captchaCode" }` → `201`.
+
+**`PUT /patient/complete-profile`** — corpo:
+
+```json
+{ "nome": "Maria Silva", "cpf": "12345678900", "dataNascimento": "1990-05-10", "nomeMae": "Joana Silva" }
+```
+
+**`POST /patient/agendamentos`** — corpo:
+
+```json
+{ "medicoId": "uuid-do-medico", "dataHora": "2026-06-30T14:00:00" }
+```
+
+**`POST /patient/foto`** — `multipart/form-data`, campo `arquivo`. Aceita JPEG/PNG/WebP até 10 MB.
+
+---
+
+### Portal do Médico (`/medico`)
+
+| Método | Caminho                          | Auth                  | Descrição                                |
+|--------|----------------------------------|-----------------------|------------------------------------------|
+| GET    | `/medico/especialidades`         | Público               | Lista especialidades (valor/rótulo)      |
+| GET    | `/medico/perfil`                 | `MEDIC`, `ADMIN`      | Perfil do médico autenticado             |
+| PUT    | `/medico/perfil`                 | `MEDIC`, `ADMIN`      | Atualiza o perfil (completo)             |
+| PATCH  | `/medico/perfil`                 | `MEDIC`, `ADMIN`      | Completa/atualiza o perfil (parcial)     |
+| GET    | `/medico/estatisticas`           | `MEDIC`, `ADMIN`      | Estatísticas do mês (`?mes=yyyy-MM`)     |
+| POST   | `/medico/foto`                   | `MEDIC`, `ADMIN`      | Envia foto de perfil (multipart)         |
+| GET    | `/medico/agenda`                 | `MEDIC`, `ADMIN`      | Agenda de consultas                      |
+| POST   | `/medico/disponibilidade`        | `MEDIC`, `ADMIN`      | Adiciona janela de disponibilidade       |
+| GET    | `/medico/disponibilidade`        | `MEDIC`, `ADMIN`      | Lista disponibilidades                   |
+| DELETE | `/medico/disponibilidade/{id}`   | `MEDIC`, `ADMIN`      | Remove uma disponibilidade               |
+| GET    | `/medico/disponibilidade/slots`  | `MEDIC`,`ADMIN`,`PACIENTE` | Slots livres (`?medicoId=&data=yyyy-MM-dd`) |
+
+**`PUT`/`PATCH /medico/perfil`** — corpo:
+
 ```json
 {
-  "login": "gabriel",
-  "password": "Admin@1234",
-  "captchaId": "uuid-do-captcha",
-  "captchaCode": "ABC123"
+  "nome": "Dr. João",
+  "crm": "CRM/SP 123456",
+  "especialidade": "CARDIOLOGIA",
+  "cidade": "São Paulo",
+  "valorConsulta": 250.00,
+  "duracaoConsultaMinutos": 30,
+  "descricao": "...",
+  "universidade": "USP",
+  "anoFormacao": 2015
 }
 ```
 
-**Resposta `200`:**
+**`POST /medico/disponibilidade`** — corpo:
+
 ```json
-{
-  "mfaRequired": true,
-  "emailHint": "ga***@gmail.com",
-  "email": "gabriel@gmail.com"
-}
-```
-
-**Erros:**
-| Status | Mensagem |
-|---|---|
-| 400 | CAPTCHA inválido ou expirado |
-| 401 | Login ou senha inválidos. Tentativas restantes: N |
-| 403 | Conta não ativada. Verifique seu e-mail |
-| 429 | IP bloqueado por excesso de tentativas |
-
----
-
-#### `POST /auth/verify-mfa`
-Segundo fator — valida o código MFA enviado por e-mail e retorna o JWT.
-
-**Autenticação:** não requerida
-
-**Body:**
-```json
-{
-  "email": "gabriel@gmail.com",
-  "mfaCode": "123456"
-}
-```
-
-**Resposta `200`:**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiJ9...",
-  "role": "ADMIN"
-}
-```
-
-**Erros:**
-| Status | Mensagem |
-|---|---|
-| 401 | Código MFA inválido. N tentativa(s) restante(s) |
-| 429 | Tentativas esgotadas. Solicite um novo código |
-
----
-
-#### `POST /auth/resend-mfa`
-Reenvia o código MFA. Máximo 3 reenvios por sessão, cooldown de 60s entre reenvios.
-
-**Autenticação:** não requerida
-
-**Body:**
-```json
-{ "email": "gabriel@gmail.com" }
-```
-
-**Resposta `200`:**
-```json
-{
-  "emailHint": "ga***@gmail.com",
-  "cooldownSeconds": 60,
-  "remainingResends": 2
-}
+{ "diaSemana": "MONDAY", "horaInicio": "08:00", "horaFim": "12:00" }
 ```
 
 ---
 
-### Cadastro de funcionário
+### Agendamentos (`/appointments`)
 
-#### `POST /auth/register`
+Todos exigem `ADMIN`, `RECEPCIONIST` ou `MEDIC`.
 
-**Autenticação:** não requerida
+| Método | Caminho                              | Descrição                          |
+|--------|--------------------------------------|------------------------------------|
+| POST   | `/appointments`                      | Cria um agendamento                |
+| GET    | `/appointments`                      | Lista todos os agendamentos        |
+| GET    | `/appointments/{id}`                 | Busca um agendamento por ID        |
+| GET    | `/appointments/paciente/{pacienteId}`| Agendamentos de um paciente        |
+| PATCH  | `/appointments/{id}/status`          | Atualiza o status                  |
+| DELETE | `/appointments/{id}`                 | Cancela um agendamento             |
 
-**Body:**
+**`POST /appointments`** — corpo:
+
 ```json
-{
-  "login": "gabriel",
-  "email": "gabriel@gmail.com",
-  "password": "MinhaS3nha!",
-  "role": "ADMIN",
-  "captchaId": "uuid",
-  "captchaCode": "ABC123"
-}
+{ "pacienteId": "uuid", "medicoId": "uuid", "dataHora": "2026-06-30T14:00:00" }
 ```
 
-Roles disponíveis: `ADMIN`, `MEDIC`, `RECEPCIONIST`
-
-**Resposta `201`:** sem body
+**`PATCH /appointments/{id}/status`** — corpo: `{ "status": "CONFIRMADO" }`.
+Valores: `AGENDADO`, `CONFIRMADO`, `REALIZADO`, `CANCELADO`.
 
 ---
 
-#### `POST /auth/verify-email`
-Verifica o e-mail após o cadastro com o código enviado.
+### Pacientes — gestão (`/patients`)
 
-**Body:**
+| Método | Caminho           | Auth    | Descrição                              |
+|--------|-------------------|---------|----------------------------------------|
+| POST   | `/patients`       | Autent. | Cadastra um paciente                   |
+| GET    | `/patients`       | Autent. | Lista pacientes (`?search=`)           |
+| GET    | `/patients/{id}`  | Autent. | Busca paciente por ID                  |
+| PUT    | `/patients/{id}`  | Autent. | Atualiza um paciente                   |
+| DELETE | `/patients/{id}`  | `ADMIN` | Desativa um paciente                   |
+
+**`POST /patients`** — corpo:
+
 ```json
-{
-  "email": "gabriel@gmail.com",
-  "code": "123456"
-}
-```
-
-**Resposta `200`:** `"E-mail verificado com sucesso."`
-
----
-
-#### `POST /auth/resend-verification`
-Reenvia o código de verificação de e-mail.
-
-**Body:**
-```json
-{ "email": "gabriel@gmail.com" }
-```
-
-**Resposta `200`:** mensagem genérica (evita enumeração de usuários)
-
----
-
-### Recuperação de senha
-
-#### `POST /auth/request-recovery`
-Solicita código de recuperação. Código válido por 15 minutos.
-
-**Body:**
-```json
-{ "email": "gabriel@gmail.com" }
-```
-
-**Resposta `200`:** mensagem genérica
-
----
-
-#### `POST /auth/validate-recovery`
-Valida o código de recuperação recebido por e-mail.
-
-**Body:**
-```json
-{
-  "email": "gabriel@gmail.com",
-  "code": "123456"
-}
-```
-
-**Resposta `200`:** `"Código válido."`
-**Resposta `400`:** código inválido ou expirado
-
----
-
-#### `POST /auth/change-password`
-Altera a senha usando o código de recuperação validado.
-
-**Body:**
-```json
-{
-  "email": "gabriel@gmail.com",
-  "code": "123456",
-  "newPassword": "NovaSenha@123"
-}
-```
-
-**Resposta `200`:** `"Senha alterada com sucesso."`
-
----
-
-#### `GET /auth/users`
-Lista todos os usuários do sistema.
-
-**Autenticação:** requerida — `ROLE_ADMIN`
-
-**Resposta `200`:**
-```json
-[
-  {
-    "id": "uuid",
-    "login": "gabriel",
-    "email": "gabriel@gmail.com",
-    "role": "ADMIN"
-  }
-]
+{ "nome": "Maria", "cpf": "12345678900", "dataNascimento": "1990-05-10", "nomeMae": "Joana", "nomePai": "José" }
 ```
 
 ---
 
-## Cadastro de Paciente (portal público)
+### Prontuários (`/prontuarios`)
 
-### `POST /patient/register`
-Cadastro de paciente via portal público. Cria registro em `tb_patients` e conta em `tb_users` com role `PACIENTE`.
+Todos exigem `ADMIN` ou `MEDIC`.
 
-**Autenticação:** não requerida
+| Método | Caminho                              | Descrição                       |
+|--------|--------------------------------------|---------------------------------|
+| POST   | `/prontuarios`                       | Cria um prontuário              |
+| GET    | `/prontuarios`                       | Lista todos os prontuários      |
+| GET    | `/prontuarios/{id}`                  | Busca um prontuário por ID      |
+| GET    | `/prontuarios/paciente/{pacienteId}` | Prontuários de um paciente      |
 
-**Body:**
-```json
-{
-  "nome": "João da Silva",
-  "cpf": "52998224725",
-  "dataNascimento": "1990-05-15",
-  "email": "joao@gmail.com",
-  "password": "Senha@123",
-  "captchaId": "uuid",
-  "captchaCode": "ABC123"
-}
-```
+**`POST /prontuarios`** — corpo:
 
-**Resposta `201`:** sem body — e-mail de verificação enviado
-
-**Notas:**
-- CPF deve ser somente dígitos (11 caracteres)
-- Se o CPF já existe em `tb_patients` mas sem conta, a conta é vinculada ao cadastro existente
-- Login do paciente no sistema será o CPF (sem formatação)
-
----
-
-## Portal do Paciente
-
-Todos os endpoints abaixo requerem autenticação com JWT de role `PACIENTE`.
-
-### `GET /patient/me`
-Retorna o perfil do paciente autenticado.
-
-**Resposta `200`:**
-```json
-{
-  "id": "uuid",
-  "nome": "João da Silva",
-  "cpf": "52998224725",
-  "dataNascimento": "1990-05-15",
-  "ativo": true
-}
-```
-
----
-
-### `GET /patient/appointments`
-Retorna todos os agendamentos do paciente autenticado.
-
-**Resposta `200`:**
-```json
-[
-  {
-    "id": "uuid",
-    "pacienteId": "uuid",
-    "nomePaciente": "João da Silva",
-    "dataHora": "2025-07-10T14:30:00",
-    "createdAt": "2025-06-01T09:00:00"
-  }
-]
-```
-
----
-
-### `GET /patient/prontuarios`
-Retorna o histórico médico do paciente autenticado.
-
-**Resposta `200`:**
-```json
-[
-  {
-    "id": "uuid",
-    "nomePaciente": "João da Silva",
-    "nomeMedico": "dra.ana",
-    "nomeConvenio": "Unimed",
-    "descricaoProcedimento": "Consulta clínica",
-    "valorCalculado": 140.00,
-    "observacoes": "Paciente com pressão elevada",
-    "dataAtendimento": "2025-06-15T10:00:00"
-  }
-]
-```
-
----
-
-## Pacientes (funcionários)
-
-Requer autenticação JWT.
-
-### `POST /patients`
-Cadastra um novo paciente.
-
-**Body:**
-```json
-{
-  "nome": "Maria Souza",
-  "cpf": "529.982.247-25",
-  "dataNascimento": "2010-03-01",
-  "nomeMae": "Ana Souza",
-  "nomePai": "Carlos Souza"
-}
-```
-
-`nomeMae` e `nomePai` são obrigatórios para menores de 18 anos.
-
-**Resposta `201`:** dados do paciente criado
-
----
-
-### `GET /patients`
-Lista pacientes ativos. Suporta busca por nome ou CPF.
-
-**Query params:** `?search=maria`
-
-**Resposta `200`:**
-```json
-[
-  {
-    "id": "uuid",
-    "nome": "Maria Souza",
-    "cpf": "52998224725",
-    "dataNascimento": "2010-03-01",
-    "ativo": true
-  }
-]
-```
-
----
-
-### `GET /patients/{id}`
-Busca paciente por ID.
-
-**Resposta `200`:** dados do paciente
-**Resposta `404`:** paciente não encontrado
-
----
-
-### `PUT /patients/{id}`
-Atualiza dados do paciente.
-
-**Body:** mesmo formato do POST
-
-**Resposta `200`:** dados atualizados
-
----
-
-### `DELETE /patients/{id}`
-Desativa o paciente (soft delete — `ativo = false`).
-
-**Autenticação:** `ROLE_ADMIN`
-
-**Resposta `204`:** sem body
-
----
-
-## Agendamentos
-
-Requer autenticação JWT.
-
-### `POST /appointments`
-
-**Body:**
-```json
-{
-  "pacienteId": "uuid-do-paciente",
-  "dataHora": "2025-07-10T14:30:00"
-}
-```
-
-`dataHora` deve ser no futuro. Não é permitido agendar horário já ocupado.
-
-**Resposta `201`:** dados do agendamento
-
----
-
-### `GET /appointments`
-Lista todos os agendamentos.
-
----
-
-### `GET /appointments/paciente/{pacienteId}`
-Lista agendamentos de um paciente específico.
-
----
-
-### `GET /appointments/{id}`
-Busca agendamento por ID.
-
----
-
-## Prontuários
-
-Requer autenticação JWT com role `ADMIN` ou `MEDIC`.
-
-### `POST /prontuarios`
-Registra um atendimento. O valor final é calculado automaticamente aplicando o desconto do convênio ao custo do procedimento.
-
-**Body:**
 ```json
 {
   "idPaciente": "uuid",
-  "idMedico": "uuid",
   "idConvenio": "uuid",
   "idProcedimento": "uuid",
-  "observacoes": "Paciente relatou dores no peito"
+  "idMedico": "uuid",
+  "observacoes": "..."
 }
 ```
 
-**Resposta `201`:** prontuário criado com `valorCalculado`
+---
+
+### Convênios (`/convenios`)
+
+| Método | Caminho            | Auth    | Descrição                  |
+|--------|--------------------|---------|----------------------------|
+| GET    | `/convenios`       | Autent. | Lista convênios ativos     |
+| GET    | `/convenios/{id}`  | Autent. | Busca convênio por ID      |
+| POST   | `/convenios`       | `ADMIN` | Cria um convênio           |
+| PUT    | `/convenios/{id}`  | `ADMIN` | Atualiza um convênio       |
+| DELETE | `/convenios/{id}`  | `ADMIN` | Desativa um convênio       |
+
+**`POST`/`PUT /convenios`** — corpo: `{ "nome": "Unimed", "desconto": 0.15 }`.
 
 ---
 
-### `GET /prontuarios`
-Lista todos os prontuários.
+### Procedimentos (`/procedimentos`)
 
-### `GET /prontuarios/paciente/{pacienteId}`
-Lista prontuários de um paciente.
+| Método | Caminho               | Auth    | Descrição                     |
+|--------|-----------------------|---------|-------------------------------|
+| GET    | `/procedimentos`      | Autent. | Lista procedimentos ativos    |
+| GET    | `/procedimentos/{id}` | Autent. | Busca procedimento por ID     |
+| POST   | `/procedimentos`      | `ADMIN` | Cria um procedimento          |
+| PUT    | `/procedimentos/{id}` | `ADMIN` | Atualiza um procedimento      |
+| DELETE | `/procedimentos/{id}` | `ADMIN` | Desativa um procedimento      |
 
-### `GET /prontuarios/{id}`
-Busca prontuário por ID.
+**`POST`/`PUT /procedimentos`** — corpo: `{ "descricao": "Consulta", "custo": 200.00 }`.
 
 ---
 
-## Convênios
+### Usuários (`/users`)
 
-Requer autenticação JWT. Criação/edição/exclusão requer `ROLE_ADMIN`.
+| Método | Caminho          | Auth    | Descrição                |
+|--------|------------------|---------|--------------------------|
+| GET    | `/users/medicos` | Autent. | Lista os médicos ativos  |
 
-### `POST /convenios`
+---
 
-**Body:**
+### Imagens (`/imagens`)
+
+| Método | Caminho          | Auth    | Descrição                                  |
+|--------|------------------|---------|--------------------------------------------|
+| GET    | `/imagens/{id}`  | Público | Serve uma imagem/anexo (bytes binários)    |
+
+Retorna o conteúdo com o `Content-Type` original e `Cache-Control: public, max-age=86400`.
+Anexos não-imagem retornam `Content-Disposition: attachment`.
+
+---
+
+### Chat REST (`/chat`)
+
+Todos exigem usuário autenticado (qualquer papel).
+
+| Método | Caminho                            | Descrição                                  |
+|--------|------------------------------------|--------------------------------------------|
+| GET    | `/chat/contatos`                   | Lista contatos disponíveis                 |
+| GET    | `/chat/conversas`                  | Lista as conversas do usuário              |
+| POST   | `/chat/conversas/com/{contatoId}`  | Cria ou recupera conversa com um contato   |
+| GET    | `/chat/conversas/{id}/mensagens`   | Lista mensagens de uma conversa            |
+| PATCH  | `/chat/conversas/{id}/lidas`       | Marca mensagens como lidas                 |
+| POST   | `/chat/upload`                     | Upload de anexo (multipart, até 10 MB)     |
+
+**`POST /chat/upload`** — `multipart/form-data`, campo `arquivo`. Aceita imagens
+(JPEG, PNG, WebP, GIF) e documentos (PDF, DOC, DOCX). Resposta:
+
+```json
+{ "url": "/imagens/<id>", "nome": "documento.pdf", "tipo": "arquivo" }
+```
+
+---
+
+### Chat em tempo real (WebSocket/STOMP)
+
+O envio de mensagens em tempo real usa **WebSocket + STOMP** (não REST), por isso não
+aparece no Swagger.
+
+- **Endpoint de conexão (SockJS):** `/ws`
+- **Autenticação:** cabeçalho STOMP `Authorization: Bearer <token>` no `CONNECT`.
+- **Envio:** publique em `/app/chat/{conversaId}` com o corpo:
+
+  ```json
+  { "texto": "Olá!", "imagemUrl": "/imagens/<id>", "nomeAnexo": "foto.png" }
+  ```
+
+- **Recebimento:** assine `/topic/conversa/{conversaId}`.
+
+---
+
+## Modelos de dados
+
+### Especialidades
+
+`CLINICA_GERAL`, `CARDIOLOGIA`, `DERMATOLOGIA`, `ENDOCRINOLOGIA`, `GASTROENTEROLOGIA`,
+`GERIATRIA`, `GINECOLOGIA_OBSTETRICIA`, `HEMATOLOGIA`, `INFECTOLOGIA`, `NEFROLOGIA`,
+`NEUROLOGIA`, `NUTROLOGIA`, `OFTALMOLOGIA`, `ONCOLOGIA`, `ORTOPEDIA`,
+`OTORRINOLARINGOLOGIA`, `PEDIATRIA`, `PNEUMOLOGIA`, `PSIQUIATRIA`, `PSICOLOGIA`,
+`REUMATOLOGIA`, `UROLOGIA`.
+
+### Status de agendamento
+
+`AGENDADO`, `CONFIRMADO`, `REALIZADO`, `CANCELADO`.
+
+---
+
+## Tratamento de erros
+
+Os erros de negócio retornam um corpo JSON padronizado (`ErrorResponse`):
+
 ```json
 {
-  "nome": "Unimed",
-  "desconto": 0.30
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Login já está em uso.",
+  "timestamp": "2026-06-26T10:00:00",
+  "fieldErrors": [ { "field": "login", "message": "Login é obrigatório" } ]
 }
 ```
 
-`desconto` é um decimal entre 0.0 e 1.0 (ex: 0.30 = 30% de desconto).
+`fieldErrors` é preenchido apenas em erros de validação (`@Valid`); caso contrário vem vazio.
 
-**Resposta `201`:** convênio criado
-
----
-
-### `GET /convenios`
-Lista convênios ativos.
-
-**Resposta `200`:**
-```json
-[
-  { "id": "uuid", "nome": "Unimed", "desconto": 0.30, "ativo": true }
-]
-```
-
-### `GET /convenios/{id}` — busca por ID
-### `PUT /convenios/{id}` — atualiza (ADMIN)
-### `DELETE /convenios/{id}` — desativa (ADMIN)
-
----
-
-## Procedimentos
-
-Requer autenticação JWT. Criação/edição/exclusão requer `ROLE_ADMIN`.
-
-### `POST /procedimentos`
-
-**Body:**
-```json
-{
-  "descricao": "Consulta clínica",
-  "custo": 200.00
-}
-```
-
-**Resposta `201`:** procedimento criado
-
----
-
-### `GET /procedimentos`
-Lista procedimentos ativos.
-
-**Resposta `200`:**
-```json
-[
-  { "id": "uuid", "descricao": "Consulta clínica", "custo": 200.00, "ativo": true }
-]
-```
-
-### `GET /procedimentos/{id}` — busca por ID
-### `PUT /procedimentos/{id}` — atualiza (ADMIN)
-### `DELETE /procedimentos/{id}` — desativa (ADMIN)
-
----
-
-## Rotas públicas (sem autenticação)
-
-| Rota | Método |
-|---|---|
-| `/captcha/generate` | GET |
-| `/auth/login` | POST |
-| `/auth/verify-mfa` | POST |
-| `/auth/resend-mfa` | POST |
-| `/auth/register` | POST |
-| `/auth/verify-email` | POST |
-| `/auth/resend-verification` | POST |
-| `/auth/request-recovery` | POST |
-| `/auth/validate-recovery` | POST |
-| `/auth/change-password` | POST |
-| `/patient/register` | POST |
-| `/*.html`, `/css/**`, `/js/**` | GET |
-
----
-
-## Rotas por role
-
-| Role | Acesso adicional |
-|---|---|
-| Autenticado (qualquer role) | `/patients` GET/POST, `/appointments` todos, `/convenios` GET, `/procedimentos` GET |
-| `MEDIC` + `ADMIN` | `/prontuarios` todos |
-| `ADMIN` | `/patients` DELETE, `/convenios` POST/PUT/DELETE, `/procedimentos` POST/PUT/DELETE, `/auth/users` GET |
-| `PACIENTE` | `/patient/me`, `/patient/appointments`, `/patient/prontuarios` |
+| Código | Significado                                                  |
+|--------|-------------------------------------------------------------|
+| 400    | Requisição inválida / regra de negócio violada / CAPTCHA    |
+| 401    | Não autenticado ou credenciais inválidas                    |
+| 403    | Sem permissão (papel insuficiente) ou conta desativada      |
+| 404    | Recurso não encontrado                                      |
+| 422    | Conta sem vínculo com paciente                              |
+| 429    | Muitas tentativas (rate limit / IP bloqueado)               |
+</content>

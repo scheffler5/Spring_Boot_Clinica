@@ -8,6 +8,8 @@ import com.learn.projeto_learn.model.Imagem;
 import com.learn.projeto_learn.model.User.Usuario;
 import com.learn.projeto_learn.repository.ImagemRepository;
 import com.learn.projeto_learn.service.ChatService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/chat")
+@Tag(name = "Chat", description = "Conversas, mensagens e upload de anexos (REST). O envio em tempo real é via WebSocket/STOMP")
 public class ChatRestController {
 
     private static final Set<String> TIPOS_PERMITIDOS = Set.of(
@@ -36,28 +39,33 @@ public class ChatRestController {
     @Autowired private ImagemRepository imagemRepository;
 
     @GetMapping("/contatos")
+    @Operation(summary = "Lista os contatos disponíveis para conversar")
     public ResponseEntity<List<ContatoDTO>> contatos(@AuthenticationPrincipal Usuario user) {
         return ResponseEntity.ok(chatService.listarContatos(user));
     }
 
     @PostMapping("/conversas/com/{contatoId}")
+    @Operation(summary = "Cria ou recupera a conversa com um contato")
     public ResponseEntity<ConversaDTO> criarOuObter(@PathVariable UUID contatoId,
                                                      @AuthenticationPrincipal Usuario user) {
         return ResponseEntity.ok(chatService.criarOuObterConversa(user, contatoId));
     }
 
     @GetMapping("/conversas")
+    @Operation(summary = "Lista as conversas do usuário autenticado")
     public ResponseEntity<List<ConversaDTO>> listar(@AuthenticationPrincipal Usuario user) {
         return ResponseEntity.ok(chatService.listarConversas(user));
     }
 
     @GetMapping("/conversas/{id}/mensagens")
+    @Operation(summary = "Lista as mensagens de uma conversa")
     public ResponseEntity<List<MensagemDTO>> mensagens(@PathVariable String id,
                                                         @AuthenticationPrincipal Usuario user) {
         return ResponseEntity.ok(chatService.getMensagens(id, user.getId()));
     }
 
     @PatchMapping("/conversas/{id}/lidas")
+    @Operation(summary = "Marca as mensagens de uma conversa como lidas")
     public ResponseEntity<Void> marcarLidas(@PathVariable String id,
                                              @AuthenticationPrincipal Usuario user) {
         chatService.marcarLidas(id, user.getId());
@@ -65,6 +73,8 @@ public class ChatRestController {
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Faz upload de um anexo do chat",
+            description = "Aceita imagens (JPEG, PNG, WebP, GIF) ou documentos (PDF, DOC, DOCX) de até 10 MB.")
     public ResponseEntity<Map<String, String>> upload(
             @RequestParam("arquivo") MultipartFile arquivo,
             @AuthenticationPrincipal Usuario user) throws IOException {

@@ -121,6 +121,25 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
+
+        <!-- Documentação da API: OpenAPI 3 + Swagger UI -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
+        <!-- Migrações de schema versionadas (corrige drift do ddl-auto=update).
+             No Spring Boot 4 a autoconfiguração do Flyway vive no módulo
+             spring-boot-flyway, que já traz o flyway-core transitivamente. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

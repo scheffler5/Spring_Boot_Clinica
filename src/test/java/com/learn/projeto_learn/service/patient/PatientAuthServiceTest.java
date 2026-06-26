@@ -25,10 +25,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Testes unitários (base da pirâmide) da validação de identidade por CPF
- * ao completar o perfil do paciente. Repositórios mockados.
- */
 @ExtendWith(MockitoExtension.class)
 class PatientAuthServiceTest {
 
@@ -85,13 +81,12 @@ class PatientAuthServiceTest {
         when(usuarioRepository.findByPaciente(existente)).thenReturn(Optional.empty());
         when(usuarioRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        // Nome com caixa/spaces diferentes deve casar (case-insensitive + trim).
         PatientResponseDTO resp = service.completeProfile(user, dto("  joão silva "));
 
         assertEquals(existente.getId(), resp.id());
         assertEquals("Maria Mãe", existente.getNomeMae());
         assertSame(existente, user.getPaciente());
-        verify(pacienteRepository, never()).save(any()); // reaproveita, não cria novo
+        verify(pacienteRepository, never()).save(any());
     }
 
     @Test

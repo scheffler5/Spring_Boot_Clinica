@@ -32,8 +32,6 @@ public class ChatService {
     @Autowired private UsuarioRepository   usuarioRepository;
     @Autowired private AgendamentoRepository agendamentoRepository;
 
-    // ── Contatos (pessoas com quem o usuário pode conversar) ──────────
-
     public List<ContatoDTO> listarContatos(Usuario usuario) {
         if (usuario.getRole() == UserRole.PACIENTE) {
             return contatosDoPaciente(usuario);
@@ -85,8 +83,6 @@ public class ChatService {
         return new ContatoDTO(outro.getId().toString(), nome, outro.getFotoUrl(), tipo, conversaId);
     }
 
-    // ── Criar ou obter conversa ───────────────────────────────────────
-
     @Transactional
     public ConversaDTO criarOuObterConversa(Usuario eu, UUID contatoId) {
         UUID pacienteUsuarioId, medicoId;
@@ -108,8 +104,6 @@ public class ChatService {
                 });
     }
 
-    // ── Conversas ─────────────────────────────────────────────────────
-
     public List<ConversaDTO> listarConversas(Usuario user) {
         UUID id = user.getId();
         List<Conversa> lista = user.getRole() == UserRole.PACIENTE
@@ -117,8 +111,6 @@ public class ChatService {
                 : conversaRepository.findAllByMedicoIdOrderByUltimaMensagemEmDesc(id);
         return lista.stream().map(c -> toDTO(c, id)).toList();
     }
-
-    // ── Mensagens ─────────────────────────────────────────────────────
 
     public List<MensagemDTO> getMensagens(String conversaId, UUID userId) {
         validarParticipacao(conversaId, userId);
@@ -165,8 +157,6 @@ public class ChatService {
         naoLidas.forEach(m -> m.setLida(true));
         mensagemRepository.saveAll(naoLidas);
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────
 
     private void validarParticipacao(String conversaId, UUID userId) {
         Conversa c = conversaRepository.findById(UUID.fromString(conversaId))

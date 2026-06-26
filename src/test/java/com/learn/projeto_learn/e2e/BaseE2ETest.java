@@ -22,16 +22,11 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
-/**
- * Base dos testes E2E: ciclo de vida do Playwright (Chromium headless) e
- * utilitários comuns (captcha PoW, geração de CPF, onboarding do paciente).
- */
 abstract class BaseE2ETest {
 
     protected static final String BASE_URL =
             System.getenv().getOrDefault("BASE_URL", "http://localhost:8080");
 
-    // Tempo para o worker resolver o proof-of-work e habilitar o botão.
     protected static final double CAPTCHA_TIMEOUT_MS = 30_000;
 
     static Playwright playwright;
@@ -60,21 +55,15 @@ abstract class BaseE2ETest {
         if (page != null) page.close();
     }
 
-    /** Clica na caixa do captcha e espera o worker habilitar o botão de submit. */
     protected void resolverCaptcha(String captchaBox, String submitButton) {
         page.click(captchaBox);
         assertThat(page.locator(submitButton))
                 .isEnabled(new LocatorAssertions.IsEnabledOptions().setTimeout(CAPTCHA_TIMEOUT_MS));
     }
 
-    /**
-     * Registra um paciente novo, faz login e completa o perfil, deixando a
-     * página no marketplace. Retorna o login criado.
-     */
     protected String onboardAteMarketplace() {
         String login = registrarELogarPaciente();
 
-        // Completar perfil -> marketplace
         page.fill("#nome", "Paciente Teste E2E");
         page.fill("#cpf", gerarCpfValido());
         page.fill("#dataNascimento", "1990-05-10");
@@ -85,15 +74,10 @@ abstract class BaseE2ETest {
         return login;
     }
 
-    /**
-     * Registra um paciente novo e faz login, parando na tela de completar
-     * perfil (perfil ainda incompleto). Retorna o login criado.
-     */
     protected String registrarELogarPaciente() {
         String login = "pac_" + System.currentTimeMillis() + "_" + ThreadLocalRandom.current().nextInt(1000);
         String senha = "Senha@12345";
 
-        // Registro
         page.navigate(BASE_URL + "/patient-login.html");
         page.click(".tab[data-tab='register']");
         page.fill("#reg-user", login);
@@ -103,7 +87,6 @@ abstract class BaseE2ETest {
         page.waitForSelector("#form-login",
                 new Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE));
 
-        // Login
         page.fill("#login-user", login);
         page.fill("#login-pass", senha);
         resolverCaptcha("#captcha-box-login", "#btn-login-submit");
@@ -113,18 +96,11 @@ abstract class BaseE2ETest {
         return login;
     }
 
-    /** Lê o token JWT guardado no localStorage da página atual. */
     protected String tokenAtual() {
         Object token = page.evaluate("() => localStorage.getItem('token')");
         return token == null ? null : token.toString();
     }
 
-    /**
-     * Semeia (de forma idempotente) um médico de teste com perfil completo,
-     * especialidade e disponibilidade seg–sex 08:00–12:00, e limpa os
-     * agendamentos dele (libera os horários a cada execução).
-     * Retorna o id do médico. Conecta no banco via JDBC (env DB_URL/USER/PASS).
-     */
     protected static UUID seedMedicoDeTeste() {
         String url  = System.getenv().getOrDefault("DB_URL",  "jdbc:postgresql://localhost:5432/clinica");
         String user = System.getenv().getOrDefault("DB_USER", "clinica_user");
@@ -160,14 +136,12 @@ abstract class BaseE2ETest {
                 }
             }
 
-            // Libera horários: remove agendamentos do médico de teste.
             try (PreparedStatement del = c.prepareStatement(
                     "DELETE FROM tb_appointments WHERE medico_id = ?")) {
                 del.setObject(1, medicoId);
                 del.executeUpdate();
             }
 
-            // Recria a disponibilidade seg–sex 08:00–12:00.
             try (PreparedStatement del = c.prepareStatement(
                     "DELETE FROM tb_disponibilidade_medico WHERE medico_id = ?")) {
                 del.setObject(1, medicoId);
@@ -193,7 +167,6 @@ abstract class BaseE2ETest {
         }
     }
 
-    /** Gera um CPF válido (com dígitos verificadores) para o teste ser idempotente. */
     protected static String gerarCpfValido() {
         int[] n = new int[11];
         for (int i = 0; i < 9; i++) n[i] = ThreadLocalRandom.current().nextInt(10);

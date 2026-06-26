@@ -14,14 +14,6 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Casos de erro do agendamento (P1) — validados via API para precisão:
- *   - agendar horário já ocupado -> 409
- *   - dia sem disponibilidade -> sem horários (lista vazia)
- *   - agendar sem perfil completo -> 422
- *
- * Usa o médico de teste (perfil completo + disponibilidade seg–sex 08–12).
- */
 class PatientBookingErrosE2ETest extends BaseE2ETest {
 
     static UUID medicoId;
@@ -69,7 +61,6 @@ class PatientBookingErrosE2ETest extends BaseE2ETest {
         onboardAteMarketplace();
         APIRequestContext api = apiComToken(tokenAtual());
 
-        // Médico atende apenas seg–sex; domingo não tem slots.
         LocalDate domingo = proxima(DayOfWeek.SUNDAY);
         APIResponse res = api.get("/patient/medicos/" + medicoId + "/horarios?data=" + domingo);
 
@@ -81,7 +72,7 @@ class PatientBookingErrosE2ETest extends BaseE2ETest {
 
     @Test
     void agendarSemPerfilCompletoRetorna422() {
-        registrarELogarPaciente(); // para na tela de completar perfil (paciente sem vínculo)
+        registrarELogarPaciente();
         APIRequestContext api = apiComToken(tokenAtual());
 
         String dataHora = proxima(DayOfWeek.MONDAY) + "T09:00:00";

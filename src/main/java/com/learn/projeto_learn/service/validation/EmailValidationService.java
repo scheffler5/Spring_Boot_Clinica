@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 @Service
 public class EmailValidationService {
 
-
     @Value("${email.domain.check:true}")
     private boolean domainCheckEnabled;
 

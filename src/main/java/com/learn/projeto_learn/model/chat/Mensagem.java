@@ -18,11 +18,11 @@ public class Mensagem {
 
     private String remetenteId;
     private String remetenteNome;
-    private String tipoRemetente;  // "MEDICO" ou "PACIENTE"
+    private String tipoRemetente;
     private String texto;
 
-    private String imagemUrl;   // URL do anexo (/imagens/{uuid}), null se só texto
-    private String nomeAnexo;   // Nome original do arquivo anexado
+    private String imagemUrl;
+    private String nomeAnexo;
 
     @CreatedDate
     private LocalDateTime timestamp;

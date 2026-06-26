@@ -4,6 +4,6 @@ public record ContatoDTO(
         String usuarioId,
         String nome,
         String fotoUrl,
-        String tipo,        // "MEDICO" ou "PACIENTE"
-        String conversaId   // null se ainda não há conversa
+        String tipo,
+        String conversaId
 ) {}
