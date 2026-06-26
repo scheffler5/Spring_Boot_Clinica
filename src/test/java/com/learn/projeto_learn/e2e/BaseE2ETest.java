@@ -149,8 +149,8 @@ abstract class BaseE2ETest {
             }
             try (PreparedStatement ins = c.prepareStatement(
                     "INSERT INTO tb_disponibilidade_medico " +
-                    "(id, ativo, dia_semana, duracao_consulta_minutos, hora_fim, hora_inicio, medico_id) " +
-                    "VALUES (?, true, ?, 60, '12:00', '08:00', ?)")) {
+                    "(id, ativo, dia_semana, hora_fim, hora_inicio, medico_id) " +
+                    "VALUES (?, true, ?, '12:00', '08:00', ?)")) {
                 for (DayOfWeek d : new DayOfWeek[]{
                         DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
                         DayOfWeek.THURSDAY, DayOfWeek.FRIDAY}) {
