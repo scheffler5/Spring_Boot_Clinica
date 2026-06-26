@@ -1,6 +1,10 @@
 # Clínica — Sistema de Gestão
 
+[![CI](https://github.com/scheffler5/Spring_Boot_Clinica/actions/workflows/ci.yml/badge.svg)](https://github.com/scheffler5/Spring_Boot_Clinica/actions/workflows/ci.yml)
+
 Sistema web de gestão para clínicas médicas, com autenticação segura, agendamentos, prontuários e portal do paciente.
+
+> 🧪 **Testes:** a estratégia de testes (unitários + E2E), cobertura e os bugs encontrados estão documentados em [TESTING.md](TESTING.md).
 
 ## Tecnologias
 
