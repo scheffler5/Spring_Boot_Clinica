@@ -1,53 +1,61 @@
 package com.learn.projeto_learn.e2e;
 
-import com.microsoft.playwright.options.AriaRole;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
- * Jornada de agendamento do paciente (fluxo crítico P0):
- *   marketplace -> escolher médico -> ver horários -> agendar -> confirmar em "Minha Área".
+ * Jornada de agendamento do paciente (fluxo crítico P0) — atualizada para o
+ * Fase D, em que o agendamento acontece na página doctor-view.html:
+ *   marketplace -> abrir médico -> escolher data -> escolher horário ->
+ *   confirmar -> ver em "Minha Área".
  *
- * Cobre os endpoints /patient/medicos, /patient/medicos/{id}/horarios e
- * /patient/agendamentos. Requer ao menos um médico com especialidade cadastrado.
+ * Requer um médico com perfil completo + disponibilidade configurada
+ * (semeado em @BeforeAll). Cobre /patient/medicos, /patient/medicos/{id}/horarios
+ * e /patient/agendamentos.
  */
 class PatientBookingE2ETest extends BaseE2ETest {
+
+    static UUID medicoId;
+
+    @BeforeAll
+    static void seed() {
+        medicoId = seedMedicoDeTeste();
+    }
 
     @Test
     void pacienteAgendaConsultaEVeEmMinhaArea() {
         onboardAteMarketplace();
 
-        // O book() do front usa confirm() — precisamos aceitar o diálogo.
-        page.onDialog(dialog -> dialog.accept());
+        // No marketplace, abre o médico de teste (navega para doctor-view.html).
+        page.locator(".doctor-card", new com.microsoft.playwright.Page.LocatorOptions()
+                .setHasText("Dr. Teste E2E")).first().click();
+        page.waitForURL("**/doctor-view.html**");
 
-        // Deve haver médicos com especialidade no marketplace.
-        assertThat(page.locator(".card-grid .card").first()).isVisible();
-
-        // Abre os horários do primeiro médico e guarda o nome dele.
-        page.getByRole(AriaRole.BUTTON, new com.microsoft.playwright.Page.GetByRoleOptions()
-                .setName("Ver horários")).first().click();
-        String nomeMedico = page.locator("#booking-medico-nome").textContent().trim();
-
-        // Escolhe a próxima segunda-feira (dia útil garante slots no fallback comercial).
+        // Escolhe a próxima segunda-feira (há disponibilidade seg–sex).
         LocalDate proximaSegunda = LocalDate.now().plusDays(1);
         while (proximaSegunda.getDayOfWeek() != DayOfWeek.MONDAY) {
             proximaSegunda = proximaSegunda.plusDays(1);
         }
-        page.fill("#booking-data", proximaSegunda.toString());
+        page.fill("#book-date", proximaSegunda.toString());
 
-        // Agenda o primeiro horário disponível.
-        page.locator("#slots-container .slot-btn").first().click();
+        // Seleciona o primeiro horário disponível e agenda.
+        page.locator(".slot-btn").first().click();
+        page.click("#btn-agendar");
+
+        // Overlay de confirmação custom (não é o confirm() nativo).
+        page.click("#_c_sim");
 
         // Mensagem de sucesso do agendamento.
-        assertThat(page.locator("#message")).containsText("Consulta confirmada");
+        assertThat(page.locator("#book-message")).containsText("agendada");
 
-        // Confirma que aparece em "Minha Área" como CONFIRMADO.
+        // Confirma que aparece em "Minha Área".
         page.navigate(BASE_URL + "/patient-dashboard.html");
-        assertThat(page.locator("#appointments-container")).containsText(nomeMedico);
-        assertThat(page.locator("#appointments-container")).containsText("Confirmado");
+        assertThat(page.locator("#appointments-container")).containsText("Dr. Teste E2E");
     }
 }
