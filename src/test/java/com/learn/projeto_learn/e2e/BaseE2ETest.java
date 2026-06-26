@@ -72,9 +72,26 @@ abstract class BaseE2ETest {
      * página no marketplace. Retorna o login criado.
      */
     protected String onboardAteMarketplace() {
+        String login = registrarELogarPaciente();
+
+        // Completar perfil -> marketplace
+        page.fill("#nome", "Paciente Teste E2E");
+        page.fill("#cpf", gerarCpfValido());
+        page.fill("#dataNascimento", "1990-05-10");
+        page.fill("#nomeMae", "Mae Teste E2E");
+        page.click("#form-profile button[type='submit']");
+        page.waitForURL("**/patient-marketplace.html");
+
+        return login;
+    }
+
+    /**
+     * Registra um paciente novo e faz login, parando na tela de completar
+     * perfil (perfil ainda incompleto). Retorna o login criado.
+     */
+    protected String registrarELogarPaciente() {
         String login = "pac_" + System.currentTimeMillis() + "_" + ThreadLocalRandom.current().nextInt(1000);
         String senha = "Senha@12345";
-        String cpf   = gerarCpfValido();
 
         // Registro
         page.navigate(BASE_URL + "/patient-login.html");
@@ -93,15 +110,13 @@ abstract class BaseE2ETest {
         page.click("#btn-login-submit");
         page.waitForURL("**/patient-profile-complete.html");
 
-        // Completar perfil
-        page.fill("#nome", "Paciente Teste E2E");
-        page.fill("#cpf", cpf);
-        page.fill("#dataNascimento", "1990-05-10");
-        page.fill("#nomeMae", "Mae Teste E2E");
-        page.click("#form-profile button[type='submit']");
-        page.waitForURL("**/patient-marketplace.html");
-
         return login;
+    }
+
+    /** Lê o token JWT guardado no localStorage da página atual. */
+    protected String tokenAtual() {
+        Object token = page.evaluate("() => localStorage.getItem('token')");
+        return token == null ? null : token.toString();
     }
 
     /**
