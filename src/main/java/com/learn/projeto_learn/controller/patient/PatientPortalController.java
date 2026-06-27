@@ -2,7 +2,7 @@ package com.learn.projeto_learn.controller.patient;
 
 import com.learn.projeto_learn.dto.Login.PatientRegisterDTO;
 import com.learn.projeto_learn.dto.agendamento.AppointmentResponseDTO;
-import com.learn.projeto_learn.dto.paciente.PatientResponseDTO;
+import com.learn.projeto_learn.dto.patient.PatientResponseDTO;
 import com.learn.projeto_learn.dto.patient.BookingRequestDTO;
 import com.learn.projeto_learn.dto.patient.CompleteProfileDTO;
 import com.learn.projeto_learn.dto.patient.EspecialidadeDTO;
