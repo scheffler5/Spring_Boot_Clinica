@@ -1,4 +1,4 @@
-package com.learn.projeto_learn.dto.paciente;
+package com.learn.projeto_learn.dto.patient;
 
 import com.learn.projeto_learn.model.patient.Paciente;
 

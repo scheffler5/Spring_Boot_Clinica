@@ -2,7 +2,7 @@ package com.learn.projeto_learn.service.patient;
 
 import com.learn.projeto_learn.dto.Login.PatientRegisterDTO;
 import com.learn.projeto_learn.dto.patient.CompleteProfileDTO;
-import com.learn.projeto_learn.dto.paciente.PatientResponseDTO;
+import com.learn.projeto_learn.dto.patient.PatientResponseDTO;
 import com.learn.projeto_learn.exception.BusinessException;
 import com.learn.projeto_learn.model.User.UserRole;
 import com.learn.projeto_learn.model.User.Usuario;
