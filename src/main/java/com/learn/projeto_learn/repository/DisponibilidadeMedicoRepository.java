@@ -12,6 +12,4 @@ public interface DisponibilidadeMedicoRepository extends JpaRepository<Disponibi
     List<DisponibilidadeMedico> findAllByMedicoIdAndAtivoTrue(UUID medicoId);
 
     List<DisponibilidadeMedico> findAllByMedicoIdAndDiaSemanaAndAtivoTrue(UUID medicoId, DayOfWeek diaSemana);
-
-    boolean existsByMedicoIdAndDiaSemana(UUID medicoId, DayOfWeek diaSemana);
 }

@@ -9,7 +9,7 @@
 │  Médico:   doctor-profile-complete.html                      │
 │  Paciente: patient-login.html · patient-dashboard.html       │
 │            patient-marketplace.html · patient-profile-*.html │
-│  Chat:     chat.html · js/chat.js · js/chat-widget.js        │
+│  Chat:     js/chat-widget.js (embutido nos dashboards)       │
 └───────────────┬───────────────────────────┬─────────────────┘
                 │  HTTP / JWT                │  WebSocket / STOMP (SockJS)
                 ▼                            ▼
@@ -23,18 +23,17 @@
 │                                                              │
 │  Controllers  →  Services  →  Repositories                  │
 │                                                              │
-│  TokenService        AuthorizationService                   │
-│  IpBlockingService   MfaAttemptService                      │
-│  CaptchaService      EmailValidationService / EmailService  │
+│  TokenService        AuthorizationService (UserDetails)     │
+│  IpBlockingService   CaptchaService                         │
 │  MarketplaceService  MedicoService / DisponibilidadeService │
 │  AgendamentoService  ProntuarioService · ChatService        │
-└──────────┬─────────────────┬──────────────────┬─────────────┘
-           │                 │                  │
-           ▼                 ▼                  ▼
- ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
- │ PostgreSQL :5432 │ │  MongoDB :27017  │ │  SMTP (Brevo /   │
- │  banco: clinica  │ │ chat (mensagens) │ │  MailHog) :1025  │
- └──────────────────┘ └──────────────────┘ └──────────────────┘
+└──────────┬─────────────────┬───────────────────────────────┘
+           │                 │
+           ▼                 ▼
+ ┌──────────────────┐ ┌──────────────────┐
+ │ PostgreSQL :5432 │ │  MongoDB :27017  │
+ │  banco: clinica  │ │ chat (mensagens) │
+ └──────────────────┘ └──────────────────┘
 ```
 
 ## Camadas da aplicação
@@ -58,7 +57,6 @@ Infraestrutura de segurança que atua antes dos controllers.
 - **`SecurityFilter`** — extrai JWT do header `Authorization: Bearer`, valida e popula o `SecurityContextHolder`.
 - **`TokenService`** — gera e valida tokens JWT (HMAC-256, expiração 2h). Reutilizado também no handshake WebSocket.
 - **`IpBlockingService`** — bloqueia IPs após 5 falhas de login consecutivas por 15 minutos.
-- **`MfaAttemptService`** — rastreia tentativas de código MFA por e-mail. Máx 3 tentativas e 3 reenvios.
 
 ### `controller/`
 Ponto de entrada HTTP (e WebSocket, no caso do chat). Recebe requisições, delega para
@@ -74,7 +72,7 @@ portal do médico (`medico/`), `captcha/`, `chat/` (REST + STOMP), `user/` e `Im
 ### `service/`
 Regras de negócio puras, agnósticas ao protocolo HTTP.
 
-- **`AuthorizationService`** — cadastro de usuário, verificação de e-mail, MFA, recuperação de senha.
+- **`AuthorizationService`** — implementa o `UserDetailsService` do Spring Security: carrega o usuário por `login` durante a autenticação. (Não faz cadastro/MFA/e-mail, apesar do nome.)
 - **`PatientService`** — CRUD de pacientes com validação de CPF único e obrigatoriedade de responsável para menores.
 - **`PatientAuthService`** — auto-cadastro de paciente pelo portal e vínculo da conta ao registro clínico por CPF (ao completar o perfil).
 - **`MarketplaceService`** — busca de médicos por especialidade/cidade e cálculo de horários livres a partir das disponibilidades.
@@ -85,8 +83,6 @@ Regras de negócio puras, agnósticas ao protocolo HTTP.
 - **`ConvenioService` / `ProcedimentoService`** — CRUD de convênios e procedimentos (soft delete).
 - **`ChatService`** — conversas (PostgreSQL) e mensagens (MongoDB); marca leitura e atualiza a última mensagem da conversa.
 - **`CaptchaService`** — CAPTCHA "Não sou um robô" sem imagem nem quebra-cabeça: na interface é só uma caixinha que o usuário clica. Por baixo é um proof-of-work / hashcash — gera um `challenge` + `difficulty` e o cliente ([pow-worker.js](../src/main/resources/static/js/pow-worker.js)) acha um `nonce` tal que `SHA-256(challenge:nonce)` comece com `difficulty` zeros. Desafios em memória, expiração de 10 min, uso único.
-- **`EmailValidationService`** — valida formato de e-mail e rejeita ~70 domínios descartáveis conhecidos.
-- **`EmailService`** — envia e-mails via JavaMailSender (configurável para MailHog ou Brevo).
 
 ### `repository/`
 Interfaces Spring Data. Sem SQL manual — queries geradas por convention (Query Methods).
@@ -117,7 +113,10 @@ Records Java (imutáveis) usados como contratos de entrada e saída da API.
 - **`BusinessException`** — exceção com `HttpStatus` associado. Lançada pelos services.
 - **`GlobalExceptionHandler`** — `@RestControllerAdvice` que intercepta as exceções e retorna `ErrorResponse` padronizado.
 
-## Fluxo de autenticação completo
+## Fluxo de autenticação (estado atual)
+
+O login é direto: CAPTCHA → senha → JWT. **Não há MFA nem envio de e-mail** (ver
+"Funcionalidades não implementadas" abaixo).
 
 ```
 1. GET  /captcha/generate
@@ -127,25 +126,34 @@ Records Java (imutáveis) usados como contratos de entrada e saída da API.
 
 2. POST /auth/login  { login, password, captchaId, captchaCode }
         ↓ RateLimitFilter: verifica IP (40 req/min)
-        ↓ IpBlockingService: verifica bloqueio de IP
+        ↓ IpBlockingService.isBlocked(): verifica bloqueio de IP
         ↓ CaptchaService.validate(): confere o nonce (uso único)
         ↓ AuthenticationManager.authenticate(): BCrypt hash check
-        ↓ AuthorizationService.sendMfaCode(): gera código, salva em mfa_token
-        ↓ EmailService.sendEmailText(): envia via SMTP
-        ← { mfaRequired: true, emailHint: "ga***", email: "real@email.com" }
-
-3. POST /auth/verify-mfa  { email, mfaCode }
-        ↓ MfaAttemptService: verifica tentativas restantes
-        ↓ AuthorizationService.verifyMfaAndGetLogin(): compara com mfa_token
-        ↓ TokenService.generateToken(): JWT HMAC-256, 2h
+              (usa AuthorizationService.loadUserByUsername)
+        ↓ IpBlockingService.registerSuccess() + TokenService.generateToken(): JWT, 2h
         ← { token: "eyJ...", role: "ADMIN", perfilCompleto: false }
+        (em falha de senha: registerFailure → 401 com tentativas restantes)
 
-4. Próximas requisições:
+3. Próximas requisições:
         Authorization: Bearer eyJ...
         ↓ SecurityFilter extrai e valida JWT
         ↓ Spring Security verifica roles em @PreAuthorize
         ↓ Controller → Service → Repository
 ```
+
+## Funcionalidades não implementadas
+
+Os recursos abaixo **não existem** no backend. O scaffolding morto que existia (serviços
+de e-mail/MFA, DTOs, dependência de SMTP e MailHog) foi removido; o que resta é apontado
+na coluna "Resíduo".
+
+| Recurso | Estado | Resíduo |
+|---|---|---|
+| MFA (segundo fator) | não implementado — `/auth/login` devolve o JWT direto | — |
+| Envio de e-mail | não implementado — nenhum código envia e-mail | — |
+| Verificação de e-mail no cadastro | não implementado — `register` cria o usuário já ativo; `Usuario` não tem campo `email_verified` | — |
+| Recuperação de senha | não implementado | — |
+| Validação de domínio de e-mail | não implementado | — |
 
 ## Chat em tempo real
 
@@ -216,7 +224,6 @@ tb_prontuarios
 
 tb_convenios       id uuid PK · nome varchar UNIQUE · desconto numeric (0.0–1.0) · ativo · timestamps
 tb_procedimentos   id uuid PK · descricao varchar · custo numeric · ativo · timestamps
-tb_locais          id uuid PK · descricao varchar · ativo · timestamps
 
 tb_conversas
   id uuid PK
@@ -257,7 +264,7 @@ O Spring Boot serve os arquivos estáticos diretamente de `src/main/resources/st
 
 | Arquivo | Responsabilidade |
 |---|---|
-| `index.html` + `js/auth.js` | Portal da equipe — login, cadastro, recuperação, MFA |
+| `index.html` + `js/auth.js` | Portal da equipe — login e cadastro (com o CAPTCHA proof-of-work) |
 | `dashboard.html` + `js/dashboard.js` | Painel interno — pacientes e agendamentos |
 | `doctor-view.html` + `js/doctor-view.js` | Visão do médico (agenda/consultas) |
 | `doctor-profile-complete.html` + `js/doctor-profile.js` | Completar perfil do médico |
@@ -265,8 +272,7 @@ O Spring Boot serve os arquivos estáticos diretamente de `src/main/resources/st
 | `patient-dashboard.html` + `js/patient-dashboard.js` | Área do paciente — consultas e prontuários |
 | `patient-marketplace.html` + `js/patient-marketplace.js` | Marketplace — buscar médico e agendar |
 | `patient-profile-complete.html` + `js/patient-profile.js` | Completar perfil do paciente |
-| `chat.html` + `js/chat.js` · `js/chat-widget.js` | Chat (STOMP via `js/stomp.umd.min.js` + `js/sockjs.min.js`) |
-| `js/mfa-block.js` | Componente compartilhado — MFA, reenvio, countdown |
+| `js/chat-widget.js` + `css/chat-widget.css` | Widget de chat embutido nos dashboards (STOMP via `js/stomp.umd.min.js` + `js/sockjs.min.js`) |
 | `js/pow-worker.js` | Proof-of-work do CAPTCHA em worker |
 | `js/tour.js` + `css/tour.css` | Tour guiado da interface |
 | `css/*.css` | Estilos (tema da equipe, paciente, médico, chat, marketplace) |

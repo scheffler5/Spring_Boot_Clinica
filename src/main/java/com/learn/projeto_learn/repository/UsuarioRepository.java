@@ -15,9 +15,6 @@ import java.util.UUID;
 public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     UserDetails findByLogin(String login);
-    boolean existsByEmail(String email);
-    Optional<Usuario> findByEmail(String email);
-    boolean existsByPaciente(Paciente paciente);
     Optional<Usuario> findByPaciente(Paciente paciente);
 
     List<Usuario> findAllByRoleInAndAtivoTrue(Collection<UserRole> roles);
