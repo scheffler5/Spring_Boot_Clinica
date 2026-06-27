@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/scheffler5/Spring_Boot_Clinica/actions/workflows/ci.yml/badge.svg)](https://github.com/scheffler5/Spring_Boot_Clinica/actions/workflows/ci.yml)
 
-Sistema web de gestão para clínicas médicas: autenticação segura com MFA, agendamentos,
+Sistema web de gestão para clínicas médicas: autenticação com CAPTCHA e JWT, agendamentos,
 prontuários, convênios, procedimentos, portal do paciente, portal do médico (marketplace
 de consultas) e chat em tempo real entre paciente e médico.
 
@@ -21,7 +21,6 @@ de consultas) e chat em tempo real entre paciente e médico.
 | Migrações de schema | Flyway |
 | Segurança | Spring Security + JWT (auth0 java-jwt 4.4) |
 | Tempo real | WebSocket + STOMP (SockJS) |
-| E-mail | Spring Mail (Brevo SMTP / MailHog em dev) |
 | Rate limiting | Bucket4j 8.10 |
 | Documentação da API | springdoc OpenAPI 3 + Swagger UI |
 | Frontend | HTML5 + CSS3 + JavaScript vanilla |
@@ -45,25 +44,13 @@ cd Spring_Boot_Clinica
 
 ### 2. Configurar variáveis de ambiente (opcional)
 
-O `docker compose` já sobe com valores padrão para desenvolvimento (PostgreSQL, MongoDB
-e MailHog locais), então **não é obrigatório** criar nenhum arquivo para subir o projeto.
+O `docker compose` já sobe com valores padrão para desenvolvimento (PostgreSQL e MongoDB
+locais), então **não é obrigatório** criar nenhum arquivo para subir o projeto.
 
-Para customizar (ex.: usar SMTP real do Brevo no lugar do MailHog), crie um arquivo `.env`
-na raiz — ele é lido automaticamente pelo `docker compose` (`env_file`, opcional):
-
-```env
-# SMTP real (opcional — sem isso usa MailHog local)
-MAIL_HOST=smtp-relay.brevo.com
-MAIL_PORT=587
-MAIL_USER=seu-login-brevo
-MAIL_PASS=sua-senha-smtp-brevo
-MAIL_FROM=seu-email@gmail.com
-MAIL_SMTP_AUTH=true
-MAIL_STARTTLS=true
-
-# Validação de domínio de e-mail (false permite e-mails temporários em testes)
-EMAIL_DOMAIN_CHECK=true
-```
+Para customizar (ex.: trocar `JWT_SECRET` ou as credenciais do banco), crie um arquivo
+`.env` na raiz — ele é lido automaticamente pelo `docker compose` (`env_file`, opcional).
+As variáveis disponíveis estão no bloco `environment` do
+[docker-compose.yml](docker-compose.yml).
 
 > Para rodar a aplicação **fora do Docker** (Maven direto), use
 > [src/main/resources/application.properties.example](src/main/resources/application.properties.example)
@@ -84,7 +71,6 @@ Na primeira execução o Docker fará o build da imagem (~3–5 minutos).
 | Portal da equipe (login interno) | http://localhost:8080 |
 | Portal do paciente | http://localhost:8080/patient-login.html |
 | Documentação interativa da API (Swagger UI) | http://localhost:8080/swagger-ui.html |
-| MailHog (e-mails de teste) | http://localhost:8025 |
 
 ## Portas
 
@@ -93,8 +79,6 @@ Na primeira execução o Docker fará o build da imagem (~3–5 minutos).
 | 8080 | Spring Boot | todas (0.0.0.0) |
 | 5432 | PostgreSQL | somente localhost |
 | 27017 | MongoDB (chat) | somente localhost |
-| 1025 | SMTP (MailHog) | somente localhost |
-| 8025 | MailHog UI | somente localhost |
 
 ## Comandos úteis
 
@@ -131,7 +115,7 @@ Detalhes em [TESTING.md](TESTING.md).
 src/main/java/com/learn/projeto_learn/
 ├── config/           Configurações globais (Security, Jackson, OpenAPI, WebSocket, Flyway)
 ├── controller/       Endpoints HTTP (REST) e WebSocket
-│   ├── Login/        Autenticação, MFA, recuperação de senha
+│   ├── Login/        Autenticação (login, registro de médico)
 │   ├── Paciente/     CRUD de pacientes (equipe)
 │   ├── patient/      Portal público do paciente (auto-cadastro, marketplace, agenda)
 │   ├── medico/       Portal do médico (perfil, disponibilidade, estatísticas)
@@ -145,7 +129,7 @@ src/main/java/com/learn/projeto_learn/
 │   └── ImagemController  Servir imagens/anexos
 ├── dto/              Objetos de transferência (records request/response)
 ├── exception/        BusinessException + handler global
-├── Infra/Security/   JWT, rate limiting, MFA, bloqueio de IP, filtro de segurança
+├── Infra/Security/   JWT, rate limiting, bloqueio de IP, filtro de segurança
 ├── model/            Entidades JPA (PostgreSQL) e documentos MongoDB (chat)
 ├── repository/       Interfaces Spring Data (JPA + MongoDB)
 └── service/          Regras de negócio
@@ -174,7 +158,6 @@ A aplicação usa **dois** bancos:
 | `tb_prontuarios` | Prontuários de atendimento |
 | `tb_convenios` | Planos de saúde e descontos |
 | `tb_procedimentos` | Procedimentos médicos e custos |
-| `tb_locais` | Locais de atendimento |
 | `tb_conversas` | Conversas paciente↔médico (metadados; as mensagens ficam no MongoDB) |
 | `tb_imagens` | Imagens e anexos (fotos de perfil, anexos do chat) |
 
@@ -201,19 +184,21 @@ clínico ao completar o perfil (não faz login com CPF).
 
 ## Segurança
 
-- Autenticação em dois fatores (MFA) via e-mail em todos os logins
+**Ativo no código** (fluxo de login atual: CAPTCHA → senha → JWT):
+
 - CAPTCHA "Não sou um robô": o usuário só clica numa caixinha — não há imagem nem
   quebra-cabeça. Por baixo é um proof-of-work: o clique dispara um worker que resolve o
   desafio do servidor (acha um nonce cujo SHA-256 começa com N zeros). Desafio de uso
   único, expira em 10 min
 - Rate limiting por IP: 40 req/min em rotas de auth, 200 req/min nas demais (HTTP 429)
 - Bloqueio de IP após 5 falhas consecutivas de login (15 min)
-- Máximo de 3 tentativas de código MFA por sessão
-- Máximo de 3 reenvios de código MFA com cooldown de 60s
-- Verificação de e-mail obrigatória no cadastro
-- Bloqueio de domínios de e-mail descartáveis (~70 domínios)
 - Tokens JWT com expiração de 2 horas (HMAC-256); conexões WebSocket também autenticadas por JWT
 - Senhas armazenadas com BCrypt
+
+> **Não implementado:** o login **não** tem segundo fator (MFA) e o sistema **não envia
+> e-mail**. Recursos como MFA por e-mail, verificação de e-mail no cadastro, recuperação de
+> senha e bloqueio de domínios descartáveis não existem no backend — o scaffolding morto
+> que existia (serviços de e-mail/MFA, DTOs, dependência de SMTP e MailHog) foi removido.
 
 ## Documentação da API
 

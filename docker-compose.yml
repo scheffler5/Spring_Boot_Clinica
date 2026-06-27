@@ -17,13 +17,6 @@ services:
       timeout: 5s
       retries: 5
 
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: clinica_mail
-    ports:
-      - "127.0.0.1:1025:1025"
-      - "127.0.0.1:8025:8025"
-
   mongo:
     image: mongo:7-jammy
     container_name: clinica_mongo
@@ -39,8 +32,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      mailhog:
-        condition: service_started
       mongo:
         condition: service_started
     env_file:
@@ -54,17 +45,8 @@ services:
       JWT_SECRET:          ${JWT_SECRET:-clinica-dev-secret-2025-troque-em-producao}
       JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-2}
 
-      MAIL_HOST:          ${MAIL_HOST:-mailhog}
-      MAIL_PORT:          ${MAIL_PORT:-1025}
-      MAIL_USER:          ${MAIL_USER:-}
-      MAIL_PASS:          ${MAIL_PASS:-}
-      MAIL_SMTP_AUTH:     ${MAIL_SMTP_AUTH:-false}
-      MAIL_STARTTLS:      ${MAIL_STARTTLS:-false}
-      MAIL_SSL_TRUST:     ${MAIL_SSL_TRUST:-*}
-
       DDL_AUTO:           update
       SHOW_SQL:           "false"
-      EMAIL_DOMAIN_CHECK: ${EMAIL_DOMAIN_CHECK:-false}
       SPRING_MONGODB_URI: mongodb://mongo:27017/clinica_chat
       SPRING_WEB_RESOURCES_STATIC_LOCATIONS: "file:static/,classpath:/static/"
       SPRING_WEB_RESOURCES_CACHE_PERIOD: "0"

@@ -92,11 +92,6 @@
             <version>1.49.0</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
-        </dependency>
-
         <!-- Chat: WebSocket + STOMP -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -8,7 +8,6 @@ import com.learn.projeto_learn.model.User.UserRole;
 import com.learn.projeto_learn.model.User.Usuario;
 import com.learn.projeto_learn.repository.UsuarioRepository;
 import com.learn.projeto_learn.service.captcha.CaptchaService;
-import com.learn.projeto_learn.service.validation.EmailValidationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,7 +35,6 @@ public class AuthenticationController {
     @Autowired private UsuarioRepository     repository;
     @Autowired private CaptchaService        captchaService;
     @Autowired private IpBlockingService     ipBlockingService;
-    @Autowired private EmailValidationService emailValidationService;
     @Autowired private PasswordEncoder       passwordEncoder;
 
     @PostMapping("/login")
