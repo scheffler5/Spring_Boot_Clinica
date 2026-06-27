@@ -1,9 +1,9 @@
-package com.learn.projeto_learn.service.Agendamento;
+package com.learn.projeto_learn.service.agendamento;
 
 import com.learn.projeto_learn.dto.agendamento.AppointmentResponseDTO;
 import com.learn.projeto_learn.exception.BusinessException;
-import com.learn.projeto_learn.model.User.UserRole;
-import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.model.user.UserRole;
+import com.learn.projeto_learn.model.user.Usuario;
 import com.learn.projeto_learn.model.agendamento.Agendamento;
 import com.learn.projeto_learn.model.agendamento.StatusAgendamento;
 import com.learn.projeto_learn.repository.AgendamentoRepository;

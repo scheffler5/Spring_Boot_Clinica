@@ -4,7 +4,7 @@ import com.learn.projeto_learn.dto.medico.DisponibilidadeRequestDTO;
 import com.learn.projeto_learn.dto.medico.DisponibilidadeResponseDTO;
 import com.learn.projeto_learn.exception.BusinessException;
 import com.learn.projeto_learn.model.agendamento.DisponibilidadeMedico;
-import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.model.user.Usuario;
 import com.learn.projeto_learn.repository.DisponibilidadeMedicoRepository;
 import com.learn.projeto_learn.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;

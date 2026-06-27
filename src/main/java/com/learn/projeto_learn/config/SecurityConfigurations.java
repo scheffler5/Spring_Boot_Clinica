@@ -1,7 +1,7 @@
 package com.learn.projeto_learn.config;
 
-import com.learn.projeto_learn.Infra.Security.RateLimitFilter;
-import com.learn.projeto_learn.Infra.Security.SecurityFilter;
+import com.learn.projeto_learn.infra.security.RateLimitFilter;
+import com.learn.projeto_learn.infra.security.SecurityFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -19,7 +19,7 @@
 #
 set -euo pipefail
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 IMAGE="${IMAGE:-clinica-e2e:latest}"
 BASE_URL="${BASE_URL:-http://localhost:8080}"

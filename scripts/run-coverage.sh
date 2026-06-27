@@ -10,7 +10,7 @@
 #
 set -euo pipefail
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 # Imagem com JDK 21 + Maven (a oficial do Playwright já tem ambos).
 JDK21_IMAGE="${JDK21_IMAGE:-mcr.microsoft.com/playwright/java:v1.49.0-noble}"

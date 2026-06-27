@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.controller.patient;
 
-import com.learn.projeto_learn.dto.Login.PatientRegisterDTO;
+import com.learn.projeto_learn.dto.login.PatientRegisterDTO;
 import com.learn.projeto_learn.dto.agendamento.AppointmentResponseDTO;
 import com.learn.projeto_learn.dto.patient.PatientResponseDTO;
 import com.learn.projeto_learn.dto.patient.BookingRequestDTO;
@@ -9,10 +9,10 @@ import com.learn.projeto_learn.dto.patient.EspecialidadeDTO;
 import com.learn.projeto_learn.dto.patient.MedicoMarketplaceDTO;
 import com.learn.projeto_learn.exception.BusinessException;
 import com.learn.projeto_learn.model.Imagem;
-import com.learn.projeto_learn.model.User.Especialidade;
-import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.model.user.Especialidade;
+import com.learn.projeto_learn.model.user.Usuario;
 import com.learn.projeto_learn.repository.ImagemRepository;
-import com.learn.projeto_learn.service.Agendamento.AgendamentoService;
+import com.learn.projeto_learn.service.agendamento.AgendamentoService;
 import com.learn.projeto_learn.service.marketplace.MarketplaceService;
 import com.learn.projeto_learn.service.captcha.CaptchaService;
 import com.learn.projeto_learn.service.patient.PatientAuthService;
@@ -164,8 +164,8 @@ public class PatientPortalController {
     @Operation(summary = "Detalha um médico e suas disponibilidades")
     public ResponseEntity<com.learn.projeto_learn.dto.medico.MedicoDetalhesDTO> getMedicoDetalhes(
             @PathVariable java.util.UUID id) {
-        com.learn.projeto_learn.model.User.Usuario medico = usuarioRepository.findById(id)
-                .filter(m -> m.getRole() == com.learn.projeto_learn.model.User.UserRole.MEDIC
+        com.learn.projeto_learn.model.user.Usuario medico = usuarioRepository.findById(id)
+                .filter(m -> m.getRole() == com.learn.projeto_learn.model.user.UserRole.MEDIC
                           && Boolean.TRUE.equals(m.getAtivo())
                           && Boolean.TRUE.equals(m.getPerfilCompleto()))
                 .orElseThrow(() -> new BusinessException("Médico não encontrado.", HttpStatus.NOT_FOUND));

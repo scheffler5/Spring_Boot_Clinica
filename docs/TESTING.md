@@ -32,7 +32,7 @@ Rápidos e determinísticos: rodam igual em qualquer máquina.
   CPF já vinculado → 409, perfil já completo → 409.
 
 ```bash
-./run-unit.sh            # todos os *ServiceTest (~1 s)
+./scripts/run-unit.sh            # todos os *ServiceTest (~1 s)
 ```
 
 ## Camada E2E (topo)
@@ -49,7 +49,7 @@ execução. O captcha *proof-of-work* é resolvido pelo próprio navegador.
 
 ```bash
 docker compose up -d     # app no ar
-./run-e2e.sh             # todos os *E2ETest
+./scripts/run-e2e.sh             # todos os *E2ETest
 ```
 
 ### Infraestrutura E2E
@@ -62,7 +62,7 @@ docker compose up -d     # app no ar
 ## Cobertura (JaCoCo)
 
 ```bash
-./run-coverage.sh        # gera target/site/jacoco/index.html
+./scripts/run-coverage.sh        # gera target/site/jacoco/index.html
 ```
 
 Cobertura de instruções das classes exercitadas pelos unitários:

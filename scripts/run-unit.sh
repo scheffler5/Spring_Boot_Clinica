@@ -9,7 +9,7 @@
 #
 set -euo pipefail
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 IMAGE="${IMAGE:-clinica-e2e:latest}"
 TEST_PATTERN="${1:-*ServiceTest}"

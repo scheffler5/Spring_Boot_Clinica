@@ -9,7 +9,7 @@ paciente e médico.
 > 📚 **Documentação relacionada**
 > - [docs/API.md](docs/API.md) — referência REST completa de todos os endpoints.
 > - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — camadas, fluxos e modelo de dados.
-> - [TESTING.md](TESTING.md) — estratégia de testes (unitários + E2E), cobertura e bugs encontrados.
+> - [TESTING.md](docs/TESTING.md) — estratégia de testes (unitários + E2E), cobertura e bugs encontrados.
 
 ## Tecnologias
 
@@ -102,12 +102,12 @@ docker compose build app && docker compose up -d app
 ### Testes
 
 ```bash
-./run-unit.sh        # testes unitários da lógica de negócio
-./run-coverage.sh    # cobertura JaCoCo (compila em Java 21 — ver pom.xml)
-./run-e2e.sh         # testes E2E de interface (Playwright)
+./scripts/run-unit.sh        # testes unitários da lógica de negócio
+./scripts/run-coverage.sh    # cobertura JaCoCo (compila em Java 21 — ver pom.xml)
+./scripts/run-e2e.sh         # testes E2E de interface (Playwright)
 ```
 
-Detalhes em [TESTING.md](TESTING.md).
+Detalhes em [TESTING.md](docs/TESTING.md).
 
 ## Estrutura do projeto
 

@@ -1,4 +1,4 @@
-package com.learn.projeto_learn.service.Login;
+package com.learn.projeto_learn.service.login;
 
 import com.learn.projeto_learn.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.dto.agendamento;
 
-import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.model.user.Usuario;
 import com.learn.projeto_learn.model.agendamento.Agendamento;
 import com.learn.projeto_learn.model.agendamento.StatusAgendamento;
 

@@ -1,4 +1,4 @@
-package com.learn.projeto_learn.model.User;
+package com.learn.projeto_learn.model.user;
 
 import com.learn.projeto_learn.model.patient.Paciente;
 import jakarta.persistence.*;

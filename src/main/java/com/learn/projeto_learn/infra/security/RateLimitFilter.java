@@ -1,4 +1,4 @@
-package com.learn.projeto_learn.Infra.Security;
+package com.learn.projeto_learn.infra.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

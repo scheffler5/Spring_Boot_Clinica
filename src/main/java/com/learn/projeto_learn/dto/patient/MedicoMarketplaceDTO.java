@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.dto.patient;
 
-import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.model.user.Usuario;
 
 import java.math.BigDecimal;
 import java.util.UUID;

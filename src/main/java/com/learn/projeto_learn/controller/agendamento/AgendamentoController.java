@@ -1,8 +1,8 @@
 package com.learn.projeto_learn.controller.agendamento;
 
 import com.learn.projeto_learn.dto.agendamento.AppointmentResponseDTO;
-import com.learn.projeto_learn.model.User.Usuario;
-import com.learn.projeto_learn.service.Agendamento.AgendamentoService;
+import com.learn.projeto_learn.model.user.Usuario;
+import com.learn.projeto_learn.service.agendamento.AgendamentoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;

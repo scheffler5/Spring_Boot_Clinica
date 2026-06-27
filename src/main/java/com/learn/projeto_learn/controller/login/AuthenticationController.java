@@ -1,11 +1,11 @@
-package com.learn.projeto_learn.controller.Login;
+package com.learn.projeto_learn.controller.login;
 
-import com.learn.projeto_learn.Infra.Security.IpBlockingService;
-import com.learn.projeto_learn.Infra.Security.TokenService;
-import com.learn.projeto_learn.dto.Login.*;
+import com.learn.projeto_learn.infra.security.IpBlockingService;
+import com.learn.projeto_learn.infra.security.TokenService;
+import com.learn.projeto_learn.dto.login.*;
 import com.learn.projeto_learn.exception.BusinessException;
-import com.learn.projeto_learn.model.User.UserRole;
-import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.model.user.UserRole;
+import com.learn.projeto_learn.model.user.Usuario;
 import com.learn.projeto_learn.repository.UsuarioRepository;
 import com.learn.projeto_learn.service.captcha.CaptchaService;
 import io.swagger.v3.oas.annotations.Operation;
