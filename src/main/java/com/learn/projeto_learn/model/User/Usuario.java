@@ -104,7 +104,6 @@ public class Usuario implements UserDetails {
         authorities.add(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
         if (this.role == UserRole.ADMIN) {
             authorities.add(new SimpleGrantedAuthority("ROLE_MEDIC"));
-            authorities.add(new SimpleGrantedAuthority("ROLE_RECEPCIONIST"));
         }
         return authorities;
     }
