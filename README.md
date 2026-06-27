@@ -174,13 +174,14 @@ então as migrações rodam com segurança tanto em bancos novos quanto antigos.
 
 | Role | Acesso |
 |---|---|
-| `ADMIN` | Total — herda as permissões de `MEDIC` e `RECEPCIONIST` |
+| `ADMIN` | Total — herda as permissões de `MEDIC`; gerencia convênios, procedimentos e usuários |
 | `MEDIC` | Prontuários, agenda, perfil e disponibilidade do médico |
-| `RECEPCIONIST` | Pacientes e agendamentos |
 | `PACIENTE` | Apenas o próprio portal (perfil, marketplace, consultas, prontuários, chat) |
 
-Todos os papéis fazem login com **login + senha**. O paciente vincula seu CPF ao registro
-clínico ao completar o perfil (não faz login com CPF).
+Todos os papéis fazem login com **login + senha**. O médico se auto-cadastra em
+`/auth/register`; o paciente em `/patient/register`. O `ADMIN` é provisionado direto no
+banco (não há auto-cadastro). O paciente vincula seu CPF ao registro clínico ao completar
+o perfil (não faz login com CPF).
 
 ## Segurança
 

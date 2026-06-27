@@ -179,7 +179,7 @@ tb_users
   nome varchar(100)
   email varchar(150) UNIQUE (nullable — paciente cadastra só com login)
   password varchar
-  role varchar (ADMIN|MEDIC|RECEPCIONIST|PACIENTE)
+  role varchar (ADMIN|MEDIC|PACIENTE)
   perfil_completo boolean DEFAULT FALSE
   paciente_id uuid FK tb_patients   ← só para role=PACIENTE
   ativo boolean DEFAULT TRUE

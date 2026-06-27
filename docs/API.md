@@ -51,12 +51,11 @@ No Swagger UI, clique em **Authorize** e informe apenas o token (sem o prefixo `
 
 ## Papéis (roles)
 
-| Role           | Descrição                                   |
-|----------------|---------------------------------------------|
-| `ADMIN`        | Administração geral                         |
-| `MEDIC`        | Médico                                      |
-| `RECEPCIONIST` | Recepção                                    |
-| `PACIENTE`     | Paciente (acesso apenas ao próprio portal)  |
+| Role       | Descrição                                       |
+|------------|-------------------------------------------------|
+| `ADMIN`    | Administração geral (herda permissões de `MEDIC`)|
+| `MEDIC`    | Médico                                          |
+| `PACIENTE` | Paciente (acesso apenas ao próprio portal)      |
 
 ## Convenções
 
@@ -199,7 +198,7 @@ Resposta `200 OK`:
 
 ### Agendamentos (`/appointments`)
 
-Todos exigem `ADMIN`, `RECEPCIONIST` ou `MEDIC`.
+Todos exigem `ADMIN` ou `MEDIC`.
 
 | Método | Caminho                              | Descrição                          |
 |--------|--------------------------------------|------------------------------------|

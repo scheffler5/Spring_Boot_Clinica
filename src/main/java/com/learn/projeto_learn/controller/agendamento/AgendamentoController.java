@@ -21,8 +21,8 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/appointments")
-@PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONIST', 'MEDIC')")
-@Tag(name = "Agendamentos", description = "Gestão de consultas pela clínica (admin/recepção/médico)")
+@PreAuthorize("hasAnyRole('ADMIN', 'MEDIC')")
+@Tag(name = "Agendamentos", description = "Gestão de consultas pela clínica (admin/médico)")
 public class AgendamentoController {
 
     @Autowired private AgendamentoService service;
