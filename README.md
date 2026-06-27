@@ -3,8 +3,8 @@
 [![CI](https://github.com/scheffler5/Spring_Boot_Clinica/actions/workflows/ci.yml/badge.svg)](https://github.com/scheffler5/Spring_Boot_Clinica/actions/workflows/ci.yml)
 
 Sistema web de gestão para clínicas médicas: autenticação com CAPTCHA e JWT, agendamentos,
-prontuários, convênios, procedimentos, portal do paciente, portal do médico (marketplace
-de consultas) e chat em tempo real entre paciente e médico.
+portal do paciente, portal do médico (marketplace de consultas) e chat em tempo real entre
+paciente e médico.
 
 > 📚 **Documentação relacionada**
 > - [docs/API.md](docs/API.md) — referência REST completa de todos os endpoints.
@@ -120,9 +120,6 @@ src/main/java/com/learn/projeto_learn/
 │   ├── patient/      Portal público do paciente (auto-cadastro, marketplace, agenda)
 │   ├── medico/       Portal do médico (perfil, disponibilidade, estatísticas)
 │   ├── agendamento/  Agendamentos (equipe)
-│   ├── medicalrecorder/ Prontuários
-│   ├── convenio/     Convênios
-│   ├── procedimento/ Procedimentos
 │   ├── captcha/      Geração de CAPTCHA
 │   ├── chat/         Chat REST e WebSocket/STOMP
 │   ├── user/         Consultas auxiliares de usuários (lista de médicos)
@@ -144,7 +141,7 @@ src/main/resources/
 
 A aplicação usa **dois** bancos:
 
-- **PostgreSQL** — dados relacionais (usuários, pacientes, agendamentos, prontuários, etc.).
+- **PostgreSQL** — dados relacionais (usuários, pacientes, agendamentos, etc.).
 - **MongoDB** — mensagens do chat (coleção `mensagens`).
 
 ### Tabelas PostgreSQL
@@ -155,9 +152,6 @@ A aplicação usa **dois** bancos:
 | `tb_patients` | Dados clínicos dos pacientes |
 | `tb_appointments` | Agendamentos de consultas (com status e médico) |
 | `tb_disponibilidade_medico` | Janelas de disponibilidade do médico por dia da semana |
-| `tb_prontuarios` | Prontuários de atendimento |
-| `tb_convenios` | Planos de saúde e descontos |
-| `tb_procedimentos` | Procedimentos médicos e custos |
 | `tb_conversas` | Conversas paciente↔médico (metadados; as mensagens ficam no MongoDB) |
 | `tb_imagens` | Imagens e anexos (fotos de perfil, anexos do chat) |
 
@@ -174,9 +168,9 @@ então as migrações rodam com segurança tanto em bancos novos quanto antigos.
 
 | Role | Acesso |
 |---|---|
-| `ADMIN` | Total — herda as permissões de `MEDIC`; gerencia convênios, procedimentos e usuários |
-| `MEDIC` | Prontuários, agenda, perfil e disponibilidade do médico |
-| `PACIENTE` | Apenas o próprio portal (perfil, marketplace, consultas, prontuários, chat) |
+| `ADMIN` | Total — herda as permissões de `MEDIC`; gerencia usuários e agendamentos |
+| `MEDIC` | Agenda, perfil e disponibilidade do médico |
+| `PACIENTE` | Apenas o próprio portal (perfil, marketplace, consultas, chat) |
 
 Todos os papéis fazem login com **login + senha**. O médico se auto-cadastra em
 `/auth/register`; o paciente em `/patient/register`. O `ADMIN` é provisionado direto no

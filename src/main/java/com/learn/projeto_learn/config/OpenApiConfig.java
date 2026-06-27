@@ -28,7 +28,7 @@ public class OpenApiConfig {
                                 API REST do sistema de gestão de clínica médica.
 
                                 Cobre autenticação (JWT), portal do paciente, portal do médico,
-                                agendamentos, prontuários, convênios, procedimentos e chat.
+                                agendamentos e chat.
 
                                 ## Autenticação
                                 A maioria dos endpoints exige um token JWT no cabeçalho

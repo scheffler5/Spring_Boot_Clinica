@@ -26,7 +26,7 @@
 │  TokenService        AuthorizationService (UserDetails)     │
 │  IpBlockingService   CaptchaService                         │
 │  MarketplaceService  MedicoService / DisponibilidadeService │
-│  AgendamentoService  ProntuarioService · ChatService        │
+│  AgendamentoService  ChatService                            │
 └──────────┬─────────────────┬───────────────────────────────┘
            │                 │
            ▼                 ▼
@@ -65,9 +65,9 @@ services, define status de retorno.
 Não contém regras de negócio — apenas deserialização, validação de formato (`@Valid`),
 controle de acesso (`@PreAuthorize`) e montagem do `ResponseEntity`.
 
-Grupos: autenticação (`Login/`), gestão pela equipe (`Paciente/`, `agendamento/`,
-`medicalrecorder/`, `convenio/`, `procedimento/`), portal do paciente (`patient/`),
-portal do médico (`medico/`), `captcha/`, `chat/` (REST + STOMP), `user/` e `ImagemController`.
+Grupos: autenticação (`Login/`), gestão pela equipe (`Paciente/`, `agendamento/`),
+portal do paciente (`patient/`), portal do médico (`medico/`), `captcha/`,
+`chat/` (REST + STOMP), `user/` e `ImagemController`.
 
 ### `service/`
 Regras de negócio puras, agnósticas ao protocolo HTTP.
@@ -78,9 +78,7 @@ Regras de negócio puras, agnósticas ao protocolo HTTP.
 - **`MarketplaceService`** — busca de médicos por especialidade/cidade e cálculo de horários livres a partir das disponibilidades.
 - **`MedicoService`** — perfil do médico, estatísticas mensais e agenda.
 - **`DisponibilidadeMedicoService`** — janelas de disponibilidade e geração de slots.
-- **`ProntuarioService`** — registra atendimentos e calcula `valorCalculado = custo × (1 - desconto_convenio)`.
 - **`AgendamentoService`** — cria agendamentos com validação de conflito de horário e transições de status.
-- **`ConvenioService` / `ProcedimentoService`** — CRUD de convênios e procedimentos (soft delete).
 - **`ChatService`** — conversas (PostgreSQL) e mensagens (MongoDB); marca leitura e atualiza a última mensagem da conversa.
 - **`CaptchaService`** — CAPTCHA "Não sou um robô" sem imagem nem quebra-cabeça: na interface é só uma caixinha que o usuário clica. Por baixo é um proof-of-work / hashcash — gera um `challenge` + `difficulty` e o cliente ([pow-worker.js](../src/main/resources/static/js/pow-worker.js)) acha um `nonce` tal que `SHA-256(challenge:nonce)` comece com `difficulty` zeros. Desafios em memória, expiração de 10 min, uso único.
 
@@ -213,18 +211,6 @@ tb_disponibilidade_medico
   ativo boolean DEFAULT TRUE
   created_at timestamp
 
-tb_prontuarios
-  id uuid PK
-  paciente_id uuid FK tb_patients
-  usuario_id  uuid FK tb_users
-  convenio_id uuid FK tb_convenios
-  procedimento_id uuid FK tb_procedimentos
-  valor_calculado numeric  observacoes text
-  data_atendimento timestamp
-
-tb_convenios       id uuid PK · nome varchar UNIQUE · desconto numeric (0.0–1.0) · ativo · timestamps
-tb_procedimentos   id uuid PK · descricao varchar · custo numeric · ativo · timestamps
-
 tb_conversas
   id uuid PK
   paciente_id uuid FK tb_users   ← UNIQUE(paciente_id, medico_id)
@@ -269,7 +255,7 @@ O Spring Boot serve os arquivos estáticos diretamente de `src/main/resources/st
 | `doctor-view.html` + `js/doctor-view.js` | Visão do médico (agenda/consultas) |
 | `doctor-profile-complete.html` + `js/doctor-profile.js` | Completar perfil do médico |
 | `patient-login.html` + `js/patient-auth.js` | Portal do paciente — login/cadastro |
-| `patient-dashboard.html` + `js/patient-dashboard.js` | Área do paciente — consultas e prontuários |
+| `patient-dashboard.html` + `js/patient-dashboard.js` | Área do paciente — consultas |
 | `patient-marketplace.html` + `js/patient-marketplace.js` | Marketplace — buscar médico e agendar |
 | `patient-profile-complete.html` + `js/patient-profile.js` | Completar perfil do paciente |
 | `js/chat-widget.js` + `css/chat-widget.css` | Widget de chat embutido nos dashboards (STOMP via `js/stomp.umd.min.js` + `js/sockjs.min.js`) |
