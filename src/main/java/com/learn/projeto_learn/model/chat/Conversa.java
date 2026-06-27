@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.model.chat;
 
-import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.model.user.Usuario;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

@@ -1,8 +1,8 @@
 package com.learn.projeto_learn.repository;
 
-import com.learn.projeto_learn.model.User.Especialidade;
-import com.learn.projeto_learn.model.User.Usuario;
-import com.learn.projeto_learn.model.User.UserRole;
+import com.learn.projeto_learn.model.user.Especialidade;
+import com.learn.projeto_learn.model.user.Usuario;
+import com.learn.projeto_learn.model.user.UserRole;
 import com.learn.projeto_learn.model.patient.Paciente;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.core.userdetails.UserDetails;

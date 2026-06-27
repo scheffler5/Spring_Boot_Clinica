@@ -1,4 +1,4 @@
-package com.learn.projeto_learn.dto.Login;
+package com.learn.projeto_learn.dto.login;
 
 public record LoginResponseDTO(
         String token,

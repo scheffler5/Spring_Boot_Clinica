@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.model.agendamento;
 
-import com.learn.projeto_learn.model.User.Usuario;
+import com.learn.projeto_learn.model.user.Usuario;
 import com.learn.projeto_learn.model.patient.Paciente;
 import jakarta.persistence.*;
 import lombok.*;

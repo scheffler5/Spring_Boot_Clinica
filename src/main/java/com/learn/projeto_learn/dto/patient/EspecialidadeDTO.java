@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.dto.patient;
 
-import com.learn.projeto_learn.model.User.Especialidade;
+import com.learn.projeto_learn.model.user.Especialidade;
 
 public record EspecialidadeDTO(String nome, String descricao) {
     public EspecialidadeDTO(Especialidade e) {

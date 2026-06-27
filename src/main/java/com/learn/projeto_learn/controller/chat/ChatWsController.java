@@ -2,8 +2,8 @@ package com.learn.projeto_learn.controller.chat;
 
 import com.learn.projeto_learn.dto.chat.EnviarMensagemDTO;
 import com.learn.projeto_learn.dto.chat.MensagemDTO;
-import com.learn.projeto_learn.model.User.Usuario;
-import com.learn.projeto_learn.service.ChatService;
+import com.learn.projeto_learn.model.user.Usuario;
+import com.learn.projeto_learn.service.chat.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;

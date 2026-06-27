@@ -1,4 +1,4 @@
-package com.learn.projeto_learn.Infra.Security;
+package com.learn.projeto_learn.infra.security;
 
 import com.learn.projeto_learn.repository.UsuarioRepository;
 import jakarta.servlet.FilterChain;

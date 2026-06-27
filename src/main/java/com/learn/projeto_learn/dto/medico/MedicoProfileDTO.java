@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.dto.medico;
 
-import com.learn.projeto_learn.model.User.Especialidade;
+import com.learn.projeto_learn.model.user.Especialidade;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;

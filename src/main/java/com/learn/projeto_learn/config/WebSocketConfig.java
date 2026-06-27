@@ -1,6 +1,6 @@
 package com.learn.projeto_learn.config;
 
-import com.learn.projeto_learn.Infra.Security.TokenService;
+import com.learn.projeto_learn.infra.security.TokenService;
 import com.learn.projeto_learn.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;

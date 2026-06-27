@@ -1,4 +1,4 @@
-package com.learn.projeto_learn.model.User;
+package com.learn.projeto_learn.model.user;
 
 public enum Especialidade {
 
