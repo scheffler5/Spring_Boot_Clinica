@@ -2,7 +2,6 @@ package com.learn.projeto_learn.controller.patient;
 
 import com.learn.projeto_learn.dto.Login.PatientRegisterDTO;
 import com.learn.projeto_learn.dto.agendamento.AppointmentResponseDTO;
-import com.learn.projeto_learn.dto.medicalrecord.ProntuarioResponseDTO;
 import com.learn.projeto_learn.dto.paciente.PatientResponseDTO;
 import com.learn.projeto_learn.dto.patient.BookingRequestDTO;
 import com.learn.projeto_learn.dto.patient.CompleteProfileDTO;
@@ -15,7 +14,6 @@ import com.learn.projeto_learn.model.User.Usuario;
 import com.learn.projeto_learn.repository.ImagemRepository;
 import com.learn.projeto_learn.service.Agendamento.AgendamentoService;
 import com.learn.projeto_learn.service.marketplace.MarketplaceService;
-import com.learn.projeto_learn.service.medicalrecord.ProntuarioService;
 import com.learn.projeto_learn.service.captcha.CaptchaService;
 import com.learn.projeto_learn.service.patient.PatientAuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,7 +44,6 @@ public class PatientPortalController {
 
     @Autowired private PatientAuthService patientAuthService;
     @Autowired private AgendamentoService agendamentoService;
-    @Autowired private ProntuarioService prontuarioService;
     @Autowired private CaptchaService captchaService;
     @Autowired private MarketplaceService marketplaceService;
     @Autowired private com.learn.projeto_learn.repository.UsuarioRepository usuarioRepository;
@@ -160,17 +157,6 @@ public class PatientPortalController {
             throw new BusinessException("Conta sem vínculo com paciente.", HttpStatus.UNPROCESSABLE_ENTITY);
         }
         return ResponseEntity.ok(agendamentoService.listByPaciente(user.getPaciente().getId()));
-    }
-
-    @GetMapping("/prontuarios")
-    @PreAuthorize("hasRole('PACIENTE')")
-    @Operation(summary = "Lista os prontuários do paciente autenticado")
-    public ResponseEntity<List<ProntuarioResponseDTO>> getMyProntuarios(
-            @AuthenticationPrincipal Usuario user) {
-        if (user.getPaciente() == null) {
-            throw new BusinessException("Conta sem vínculo com paciente.", HttpStatus.UNPROCESSABLE_ENTITY);
-        }
-        return ResponseEntity.ok(prontuarioService.listByPaciente(user.getPaciente().getId()));
     }
 
     @GetMapping("/medicos/{id}/detalhes")

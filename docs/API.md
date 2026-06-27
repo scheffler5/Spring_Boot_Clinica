@@ -1,8 +1,7 @@
 # API da Clínica — Referência REST
 
 API REST do sistema de gestão de clínica médica (Spring Boot 4). Cobre autenticação,
-portal do paciente, portal do médico, agendamentos, prontuários, convênios,
-procedimentos e chat.
+portal do paciente, portal do médico, agendamentos e chat.
 
 > **Documentação interativa (Swagger UI):** com a aplicação no ar, acesse
 > [`/swagger-ui.html`](http://localhost:8080/swagger-ui.html). O contrato OpenAPI bruto
@@ -22,9 +21,6 @@ procedimentos e chat.
   - [Portal do Médico (`/medico`)](#portal-do-médico-medico)
   - [Agendamentos (`/appointments`)](#agendamentos-appointments)
   - [Pacientes — gestão (`/patients`)](#pacientes--gestão-patients)
-  - [Prontuários (`/prontuarios`)](#prontuários-prontuarios)
-  - [Convênios (`/convenios`)](#convênios-convenios)
-  - [Procedimentos (`/procedimentos`)](#procedimentos-procedimentos)
   - [Usuários (`/users`)](#usuários-users)
   - [Imagens (`/imagens`)](#imagens-imagens)
   - [Chat REST (`/chat`)](#chat-rest-chat)
@@ -136,7 +132,6 @@ Resposta `200 OK`:
 | GET    | `/patient/medicos/{id}/detalhes`         | `PACIENTE` | Detalhes do médico e disponibilidades    |
 | POST   | `/patient/agendamentos`                  | `PACIENTE` | Agenda uma consulta                      |
 | GET    | `/patient/appointments`                  | `PACIENTE` | Agendamentos do paciente                 |
-| GET    | `/patient/prontuarios`                   | `PACIENTE` | Prontuários do paciente                  |
 
 **`POST /patient/register`** — corpo: `{ "login", "password", "captchaId", "captchaCode" }` → `201`.
 
@@ -235,59 +230,6 @@ Valores: `AGENDADO`, `CONFIRMADO`, `REALIZADO`, `CANCELADO`.
 ```json
 { "nome": "Maria", "cpf": "12345678900", "dataNascimento": "1990-05-10", "nomeMae": "Joana", "nomePai": "José" }
 ```
-
----
-
-### Prontuários (`/prontuarios`)
-
-Todos exigem `ADMIN` ou `MEDIC`.
-
-| Método | Caminho                              | Descrição                       |
-|--------|--------------------------------------|---------------------------------|
-| POST   | `/prontuarios`                       | Cria um prontuário              |
-| GET    | `/prontuarios`                       | Lista todos os prontuários      |
-| GET    | `/prontuarios/{id}`                  | Busca um prontuário por ID      |
-| GET    | `/prontuarios/paciente/{pacienteId}` | Prontuários de um paciente      |
-
-**`POST /prontuarios`** — corpo:
-
-```json
-{
-  "idPaciente": "uuid",
-  "idConvenio": "uuid",
-  "idProcedimento": "uuid",
-  "idMedico": "uuid",
-  "observacoes": "..."
-}
-```
-
----
-
-### Convênios (`/convenios`)
-
-| Método | Caminho            | Auth    | Descrição                  |
-|--------|--------------------|---------|----------------------------|
-| GET    | `/convenios`       | Autent. | Lista convênios ativos     |
-| GET    | `/convenios/{id}`  | Autent. | Busca convênio por ID      |
-| POST   | `/convenios`       | `ADMIN` | Cria um convênio           |
-| PUT    | `/convenios/{id}`  | `ADMIN` | Atualiza um convênio       |
-| DELETE | `/convenios/{id}`  | `ADMIN` | Desativa um convênio       |
-
-**`POST`/`PUT /convenios`** — corpo: `{ "nome": "Unimed", "desconto": 0.15 }`.
-
----
-
-### Procedimentos (`/procedimentos`)
-
-| Método | Caminho               | Auth    | Descrição                     |
-|--------|-----------------------|---------|-------------------------------|
-| GET    | `/procedimentos`      | Autent. | Lista procedimentos ativos    |
-| GET    | `/procedimentos/{id}` | Autent. | Busca procedimento por ID     |
-| POST   | `/procedimentos`      | `ADMIN` | Cria um procedimento          |
-| PUT    | `/procedimentos/{id}` | `ADMIN` | Atualiza um procedimento      |
-| DELETE | `/procedimentos/{id}` | `ADMIN` | Desativa um procedimento      |
-
-**`POST`/`PUT /procedimentos`** — corpo: `{ "descricao": "Consulta", "custo": 200.00 }`.
 
 ---
 

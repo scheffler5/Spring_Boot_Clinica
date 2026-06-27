@@ -241,39 +241,6 @@ async function loadAppointments() {
 }
 
 
-async function loadProntuarios() {
-    const res = await apiFetch("/patient/prontuarios");
-    if (!res.ok) { showMsg("Erro ao carregar histórico médico.", "error"); return; }
-
-    const list = await res.json();
-    const container = document.getElementById("prontuarios-container");
-
-    if (list.length === 0) {
-        container.innerHTML = '<p class="empty-state">Nenhum atendimento registrado.</p>';
-        return;
-    }
-
-    const rows = list.map(p => `
-        <div style="border:1px solid #eceff1;border-radius:8px;padding:12px;margin-bottom:10px">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start">
-                <div>
-                    <div style="font-weight:600;font-size:14px">${p.descricaoProcedimento}</div>
-                    <div style="font-size:12px;color:var(--muted);margin-top:2px">
-                        Médico: ${p.nomeMedico} · Convênio: ${p.nomeConvenio}
-                    </div>
-                    ${p.observacoes ? `<div style="font-size:12px;margin-top:6px;color:#546e7a">${p.observacoes}</div>` : ""}
-                </div>
-                <div style="text-align:right;white-space:nowrap">
-                    <div style="font-weight:600;color:var(--primary-dark)">${currency(p.valorCalculado)}</div>
-                    <div style="font-size:11px;color:var(--muted)">${formatDate(p.dataAtendimento)}</div>
-                </div>
-            </div>
-        </div>`).join("");
-
-    container.innerHTML = rows;
-}
-
-
 function confirmarCancelamento(id, onConfirm) {
     const overlay = document.createElement("div");
     overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:3000;display:flex;align-items:center;justify-content:center";
@@ -328,12 +295,6 @@ const TOUR_PACIENTE = [
         text:  "Aqui aparecem suas próximas consultas com foto do médico, data e horário. Consultas canceladas ficam escondidas para não poluir a tela."
     },
     {
-        icon: "📒",
-        title: "Histórico médico",
-        target: "#prontuarios-container",
-        text:  "Seus prontuários e histórico de atendimentos ficam registrados aqui para consulta futura."
-    },
-    {
         icon: "✅",
         title: "Tudo certo!",
         text:  "Agora você já sabe como funciona o portal. Explore e agende sua primeira consulta!"
@@ -342,7 +303,6 @@ const TOUR_PACIENTE = [
 
 loadProfile();
 loadAppointments();
-loadProntuarios();
 
 setTimeout(() => {
     const tour = new TourGuide("paciente-v1", TOUR_PACIENTE);
