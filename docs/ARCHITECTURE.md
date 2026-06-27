@@ -65,20 +65,19 @@ services, define status de retorno.
 Não contém regras de negócio — apenas deserialização, validação de formato (`@Valid`),
 controle de acesso (`@PreAuthorize`) e montagem do `ResponseEntity`.
 
-Grupos: autenticação (`Login/`), gestão pela equipe (`Paciente/`, `agendamento/`),
-portal do paciente (`patient/`), portal do médico (`medico/`), `captcha/`,
-`chat/` (REST + STOMP), `user/` e `ImagemController`.
+Grupos: autenticação (`Login/`), `agendamento/` (cancelamento), portal do paciente
+(`patient/`), portal do médico (`medico/`), `captcha/`, `chat/` (REST + STOMP) e
+`ImagemController`.
 
 ### `service/`
 Regras de negócio puras, agnósticas ao protocolo HTTP.
 
 - **`AuthorizationService`** — implementa o `UserDetailsService` do Spring Security: carrega o usuário por `login` durante a autenticação. (Não faz cadastro/MFA/e-mail, apesar do nome.)
-- **`PatientService`** — CRUD de pacientes com validação de CPF único e obrigatoriedade de responsável para menores.
 - **`PatientAuthService`** — auto-cadastro de paciente pelo portal e vínculo da conta ao registro clínico por CPF (ao completar o perfil).
 - **`MarketplaceService`** — busca de médicos por especialidade/cidade e cálculo de horários livres a partir das disponibilidades.
 - **`MedicoService`** — perfil do médico, estatísticas mensais e agenda.
-- **`DisponibilidadeMedicoService`** — janelas de disponibilidade e geração de slots.
-- **`AgendamentoService`** — cria agendamentos com validação de conflito de horário e transições de status.
+- **`DisponibilidadeMedicoService`** — janelas de disponibilidade do médico.
+- **`AgendamentoService`** — cancelamento de consultas (valida posse e antecedência) e listagem por paciente.
 - **`ChatService`** — conversas (PostgreSQL) e mensagens (MongoDB); marca leitura e atualiza a última mensagem da conversa.
 - **`CaptchaService`** — CAPTCHA "Não sou um robô" sem imagem nem quebra-cabeça: na interface é só uma caixinha que o usuário clica. Por baixo é um proof-of-work / hashcash — gera um `challenge` + `difficulty` e o cliente ([pow-worker.js](../src/main/resources/static/js/pow-worker.js)) acha um `nonce` tal que `SHA-256(challenge:nonce)` comece com `difficulty` zeros. Desafios em memória, expiração de 10 min, uso único.
 
@@ -129,7 +128,7 @@ O login é direto: CAPTCHA → senha → JWT. **Não há MFA nem envio de e-mail
         ↓ AuthenticationManager.authenticate(): BCrypt hash check
               (usa AuthorizationService.loadUserByUsername)
         ↓ IpBlockingService.registerSuccess() + TokenService.generateToken(): JWT, 2h
-        ← { token: "eyJ...", role: "ADMIN", perfilCompleto: false }
+        ← { token: "eyJ...", role: "MEDIC", perfilCompleto: false }
         (em falha de senha: registerFailure → 401 com tentativas restantes)
 
 3. Próximas requisições:
@@ -177,7 +176,7 @@ tb_users
   nome varchar(100)
   email varchar(150) UNIQUE (nullable — paciente cadastra só com login)
   password varchar
-  role varchar (ADMIN|MEDIC|PACIENTE)
+  role varchar (MEDIC|PACIENTE)
   perfil_completo boolean DEFAULT FALSE
   paciente_id uuid FK tb_patients   ← só para role=PACIENTE
   ativo boolean DEFAULT TRUE

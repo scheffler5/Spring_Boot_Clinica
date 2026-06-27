@@ -20,7 +20,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.List;
@@ -50,7 +49,7 @@ public class MedicoController {
     }
 
     @PutMapping("/perfil")
-    @PreAuthorize("hasAnyRole('MEDIC', 'ADMIN')")
+    @PreAuthorize("hasRole('MEDIC')")
     @Operation(summary = "Atualiza o perfil do médico autenticado")
     public ResponseEntity<MedicoResponseDTO> atualizarPerfil(
             @AuthenticationPrincipal Usuario medico,
@@ -59,7 +58,7 @@ public class MedicoController {
     }
 
     @PatchMapping("/perfil")
-    @PreAuthorize("hasAnyRole('MEDIC', 'ADMIN')")
+    @PreAuthorize("hasRole('MEDIC')")
     @Operation(summary = "Completa o perfil do médico (parcial)")
     public ResponseEntity<MedicoResponseDTO> completarPerfil(
             @AuthenticationPrincipal Usuario medico,
@@ -68,14 +67,14 @@ public class MedicoController {
     }
 
     @GetMapping("/perfil")
-    @PreAuthorize("hasAnyRole('MEDIC', 'ADMIN')")
+    @PreAuthorize("hasRole('MEDIC')")
     @Operation(summary = "Retorna o perfil do médico autenticado")
     public ResponseEntity<MedicoResponseDTO> buscarPerfil(@AuthenticationPrincipal Usuario medico) {
         return ResponseEntity.ok(medicoService.buscarPerfil(medico.getId()));
     }
 
     @GetMapping("/estatisticas")
-    @PreAuthorize("hasAnyRole('MEDIC', 'ADMIN')")
+    @PreAuthorize("hasRole('MEDIC')")
     @Operation(summary = "Estatísticas do médico no mês",
             description = "Parâmetro 'mes' no formato yyyy-MM; usa o mês atual se omitido.")
     public ResponseEntity<MedicoEstatisticasDTO> getEstatisticas(
@@ -86,7 +85,7 @@ public class MedicoController {
     }
 
     @PostMapping(value = "/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('MEDIC', 'ADMIN')")
+    @PreAuthorize("hasRole('MEDIC')")
     @Operation(summary = "Envia a foto de perfil do médico",
             description = "Aceita JPEG, PNG ou WebP de até 10 MB (multipart/form-data).")
     public ResponseEntity<MedicoResponseDTO> uploadFoto(
@@ -118,7 +117,7 @@ public class MedicoController {
     }
 
     @GetMapping("/agenda")
-    @PreAuthorize("hasAnyRole('MEDIC', 'ADMIN')")
+    @PreAuthorize("hasRole('MEDIC')")
     @Operation(summary = "Lista a agenda de consultas do médico autenticado")
     public ResponseEntity<List<AppointmentResponseDTO>> getAgenda(@AuthenticationPrincipal Usuario medico) {
         List<AppointmentResponseDTO> agenda = agendamentoRepository
@@ -129,7 +128,7 @@ public class MedicoController {
     }
 
     @PostMapping("/disponibilidade")
-    @PreAuthorize("hasAnyRole('MEDIC', 'ADMIN')")
+    @PreAuthorize("hasRole('MEDIC')")
     @Operation(summary = "Adiciona uma janela de disponibilidade")
     public ResponseEntity<DisponibilidadeResponseDTO> adicionarDisponibilidade(
             @AuthenticationPrincipal Usuario medico,
@@ -139,7 +138,7 @@ public class MedicoController {
     }
 
     @GetMapping("/disponibilidade")
-    @PreAuthorize("hasAnyRole('MEDIC', 'ADMIN')")
+    @PreAuthorize("hasRole('MEDIC')")
     @Operation(summary = "Lista as disponibilidades do médico autenticado")
     public ResponseEntity<List<DisponibilidadeResponseDTO>> listarDisponibilidade(
             @AuthenticationPrincipal Usuario medico) {
@@ -147,7 +146,7 @@ public class MedicoController {
     }
 
     @DeleteMapping("/disponibilidade/{id}")
-    @PreAuthorize("hasAnyRole('MEDIC', 'ADMIN')")
+    @PreAuthorize("hasRole('MEDIC')")
     @Operation(summary = "Remove uma janela de disponibilidade")
     public ResponseEntity<Void> removerDisponibilidade(
             @AuthenticationPrincipal Usuario medico,
@@ -156,13 +155,4 @@ public class MedicoController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/disponibilidade/slots")
-    @PreAuthorize("hasAnyRole('MEDIC', 'ADMIN', 'PACIENTE')")
-    @Operation(summary = "Gera os horários (slots) livres de um médico em uma data")
-    public ResponseEntity<List<String>> gerarSlots(
-            @RequestParam UUID medicoId,
-            @RequestParam String data) {
-        return ResponseEntity.ok(
-                disponibilidadeService.gerarSlotsDisponiveis(medicoId, LocalDate.parse(data)));
-    }
 }

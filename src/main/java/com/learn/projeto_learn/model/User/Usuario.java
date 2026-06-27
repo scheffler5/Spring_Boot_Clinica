@@ -102,9 +102,6 @@ public class Usuario implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
-        if (this.role == UserRole.ADMIN) {
-            authorities.add(new SimpleGrantedAuthority("ROLE_MEDIC"));
-        }
         return authorities;
     }
 

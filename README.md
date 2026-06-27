@@ -116,13 +116,11 @@ src/main/java/com/learn/projeto_learn/
 ├── config/           Configurações globais (Security, Jackson, OpenAPI, WebSocket, Flyway)
 ├── controller/       Endpoints HTTP (REST) e WebSocket
 │   ├── Login/        Autenticação (login, registro de médico)
-│   ├── Paciente/     CRUD de pacientes (equipe)
 │   ├── patient/      Portal público do paciente (auto-cadastro, marketplace, agenda)
 │   ├── medico/       Portal do médico (perfil, disponibilidade, estatísticas)
-│   ├── agendamento/  Agendamentos (equipe)
+│   ├── agendamento/  Cancelamento de agendamentos
 │   ├── captcha/      Geração de CAPTCHA
 │   ├── chat/         Chat REST e WebSocket/STOMP
-│   ├── user/         Consultas auxiliares de usuários (lista de médicos)
 │   └── ImagemController  Servir imagens/anexos
 ├── dto/              Objetos de transferência (records request/response)
 ├── exception/        BusinessException + handler global
@@ -168,14 +166,12 @@ então as migrações rodam com segurança tanto em bancos novos quanto antigos.
 
 | Role | Acesso |
 |---|---|
-| `ADMIN` | Total — herda as permissões de `MEDIC`; gerencia usuários e agendamentos |
 | `MEDIC` | Agenda, perfil e disponibilidade do médico |
 | `PACIENTE` | Apenas o próprio portal (perfil, marketplace, consultas, chat) |
 
-Todos os papéis fazem login com **login + senha**. O médico se auto-cadastra em
-`/auth/register`; o paciente em `/patient/register`. O `ADMIN` é provisionado direto no
-banco (não há auto-cadastro). O paciente vincula seu CPF ao registro clínico ao completar
-o perfil (não faz login com CPF).
+Ambos os papéis fazem login com **login + senha**. O médico se auto-cadastra em
+`/auth/register`; o paciente em `/patient/register`. O paciente vincula seu CPF ao registro
+clínico ao completar o perfil (não faz login com CPF).
 
 ## Segurança
 

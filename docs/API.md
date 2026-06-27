@@ -20,8 +20,6 @@ portal do paciente, portal do médico, agendamentos e chat.
   - [Portal do Paciente (`/patient`)](#portal-do-paciente-patient)
   - [Portal do Médico (`/medico`)](#portal-do-médico-medico)
   - [Agendamentos (`/appointments`)](#agendamentos-appointments)
-  - [Pacientes — gestão (`/patients`)](#pacientes--gestão-patients)
-  - [Usuários (`/users`)](#usuários-users)
   - [Imagens (`/imagens`)](#imagens-imagens)
   - [Chat REST (`/chat`)](#chat-rest-chat)
   - [Chat em tempo real (WebSocket/STOMP)](#chat-em-tempo-real-websocketstomp)
@@ -49,7 +47,6 @@ No Swagger UI, clique em **Authorize** e informe apenas o token (sem o prefixo `
 
 | Role       | Descrição                                       |
 |------------|-------------------------------------------------|
-| `ADMIN`    | Administração geral (herda permissões de `MEDIC`)|
 | `MEDIC`    | Médico                                          |
 | `PACIENTE` | Paciente (acesso apenas ao próprio portal)      |
 
@@ -72,7 +69,6 @@ No Swagger UI, clique em **Authorize** e informe apenas o token (sem o prefixo `
 |--------|------------------|----------|--------------------------------------------|
 | POST   | `/auth/login`    | Público  | Autentica e retorna um token JWT           |
 | POST   | `/auth/register` | Público  | Registra um novo usuário médico (`MEDIC`)  |
-| GET    | `/auth/users`    | `ADMIN`  | Lista todos os usuários                    |
 
 **`POST /auth/login`** — corpo:
 
@@ -156,16 +152,15 @@ Resposta `200 OK`:
 | Método | Caminho                          | Auth                  | Descrição                                |
 |--------|----------------------------------|-----------------------|------------------------------------------|
 | GET    | `/medico/especialidades`         | Público               | Lista especialidades (valor/rótulo)      |
-| GET    | `/medico/perfil`                 | `MEDIC`, `ADMIN`      | Perfil do médico autenticado             |
-| PUT    | `/medico/perfil`                 | `MEDIC`, `ADMIN`      | Atualiza o perfil (completo)             |
-| PATCH  | `/medico/perfil`                 | `MEDIC`, `ADMIN`      | Completa/atualiza o perfil (parcial)     |
-| GET    | `/medico/estatisticas`           | `MEDIC`, `ADMIN`      | Estatísticas do mês (`?mes=yyyy-MM`)     |
-| POST   | `/medico/foto`                   | `MEDIC`, `ADMIN`      | Envia foto de perfil (multipart)         |
-| GET    | `/medico/agenda`                 | `MEDIC`, `ADMIN`      | Agenda de consultas                      |
-| POST   | `/medico/disponibilidade`        | `MEDIC`, `ADMIN`      | Adiciona janela de disponibilidade       |
-| GET    | `/medico/disponibilidade`        | `MEDIC`, `ADMIN`      | Lista disponibilidades                   |
-| DELETE | `/medico/disponibilidade/{id}`   | `MEDIC`, `ADMIN`      | Remove uma disponibilidade               |
-| GET    | `/medico/disponibilidade/slots`  | `MEDIC`,`ADMIN`,`PACIENTE` | Slots livres (`?medicoId=&data=yyyy-MM-dd`) |
+| GET    | `/medico/perfil`                 | `MEDIC`               | Perfil do médico autenticado             |
+| PUT    | `/medico/perfil`                 | `MEDIC`               | Atualiza o perfil (completo)             |
+| PATCH  | `/medico/perfil`                 | `MEDIC`               | Completa/atualiza o perfil (parcial)     |
+| GET    | `/medico/estatisticas`           | `MEDIC`               | Estatísticas do mês (`?mes=yyyy-MM`)     |
+| POST   | `/medico/foto`                   | `MEDIC`               | Envia foto de perfil (multipart)         |
+| GET    | `/medico/agenda`                 | `MEDIC`               | Agenda de consultas                      |
+| POST   | `/medico/disponibilidade`        | `MEDIC`               | Adiciona janela de disponibilidade       |
+| GET    | `/medico/disponibilidade`        | `MEDIC`               | Lista disponibilidades                   |
+| DELETE | `/medico/disponibilidade/{id}`   | `MEDIC`               | Remove uma disponibilidade               |
 
 **`PUT`/`PATCH /medico/perfil`** — corpo:
 
@@ -193,51 +188,13 @@ Resposta `200 OK`:
 
 ### Agendamentos (`/appointments`)
 
-Todos exigem `ADMIN` ou `MEDIC`.
+| Método | Caminho               | Auth                       | Descrição                          |
+|--------|-----------------------|----------------------------|------------------------------------|
+| DELETE | `/appointments/{id}`  | `MEDIC`, `PACIENTE` | Cancela um agendamento                    |
 
-| Método | Caminho                              | Descrição                          |
-|--------|--------------------------------------|------------------------------------|
-| POST   | `/appointments`                      | Cria um agendamento                |
-| GET    | `/appointments`                      | Lista todos os agendamentos        |
-| GET    | `/appointments/{id}`                 | Busca um agendamento por ID        |
-| GET    | `/appointments/paciente/{pacienteId}`| Agendamentos de um paciente        |
-| PATCH  | `/appointments/{id}/status`          | Atualiza o status                  |
-| DELETE | `/appointments/{id}`                 | Cancela um agendamento             |
-
-**`POST /appointments`** — corpo:
-
-```json
-{ "pacienteId": "uuid", "medicoId": "uuid", "dataHora": "2026-06-30T14:00:00" }
-```
-
-**`PATCH /appointments/{id}/status`** — corpo: `{ "status": "CONFIRMADO" }`.
-Valores: `AGENDADO`, `CONFIRMADO`, `REALIZADO`, `CANCELADO`.
-
----
-
-### Pacientes — gestão (`/patients`)
-
-| Método | Caminho           | Auth    | Descrição                              |
-|--------|-------------------|---------|----------------------------------------|
-| POST   | `/patients`       | Autent. | Cadastra um paciente                   |
-| GET    | `/patients`       | Autent. | Lista pacientes (`?search=`)           |
-| GET    | `/patients/{id}`  | Autent. | Busca paciente por ID                  |
-| PUT    | `/patients/{id}`  | Autent. | Atualiza um paciente                   |
-| DELETE | `/patients/{id}`  | `ADMIN` | Desativa um paciente                   |
-
-**`POST /patients`** — corpo:
-
-```json
-{ "nome": "Maria", "cpf": "12345678900", "dataNascimento": "1990-05-10", "nomeMae": "Joana", "nomePai": "José" }
-```
-
----
-
-### Usuários (`/users`)
-
-| Método | Caminho          | Auth    | Descrição                |
-|--------|------------------|---------|--------------------------|
-| GET    | `/users/medicos` | Autent. | Lista os médicos ativos  |
+O cancelamento valida posse e antecedência no serviço: o paciente cancela a própria
+consulta (mín. 24h de antecedência); o médico/admin cancelam as suas (mín. 10h).
+O agendamento em si é criado pelo paciente em `POST /patient/agendamentos`.
 
 ---
 

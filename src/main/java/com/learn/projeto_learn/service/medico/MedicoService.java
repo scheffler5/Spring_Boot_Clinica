@@ -72,7 +72,7 @@ public class MedicoService {
     private Usuario buscarMedico(UUID id) {
         Usuario u = usuarioRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Médico não encontrado.", HttpStatus.NOT_FOUND));
-        if (u.getRole() != UserRole.MEDIC && u.getRole() != UserRole.ADMIN) {
+        if (u.getRole() != UserRole.MEDIC) {
             throw new BusinessException("Usuário não é médico.", HttpStatus.FORBIDDEN);
         }
         return u;
