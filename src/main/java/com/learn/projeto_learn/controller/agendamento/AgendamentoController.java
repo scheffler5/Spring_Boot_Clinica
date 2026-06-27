@@ -21,9 +21,9 @@ public class AgendamentoController {
     @Autowired private AgendamentoService service;
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MEDIC', 'PACIENTE')")
+    @PreAuthorize("hasAnyRole('MEDIC', 'PACIENTE')")
     @Operation(summary = "Cancela um agendamento",
-            description = "Médico/admin cancelam suas consultas; o paciente cancela a própria " +
+            description = "O médico cancela suas consultas; o paciente cancela a própria " +
                     "(regras de antecedência e de posse são validadas no serviço).")
     public ResponseEntity<AppointmentResponseDTO> cancelar(@PathVariable UUID id,
                                                            @AuthenticationPrincipal Usuario usuario) {

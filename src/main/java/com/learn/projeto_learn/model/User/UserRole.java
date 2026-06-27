@@ -1,7 +1,6 @@
 package com.learn.projeto_learn.model.User;
 
 public enum UserRole {
-    ADMIN("admin"),
     MEDIC("medic"),
     PACIENTE("paciente");
 

@@ -49,7 +49,7 @@ public class AgendamentoService {
                     "Restam " + horasRestantes + "h para a consulta.",
                     HttpStatus.UNPROCESSABLE_ENTITY);
             }
-        } else if (role == UserRole.MEDIC || role == UserRole.ADMIN) {
+        } else if (role == UserRole.MEDIC) {
             if (!a.getMedico().getId().equals(solicitante.getId())) {
                 throw new BusinessException("Agendamento não pertence a este médico.", HttpStatus.FORBIDDEN);
             }

@@ -47,7 +47,6 @@ No Swagger UI, clique em **Authorize** e informe apenas o token (sem o prefixo `
 
 | Role       | Descrição                                       |
 |------------|-------------------------------------------------|
-| `ADMIN`    | Administração geral (herda permissões de `MEDIC`)|
 | `MEDIC`    | Médico                                          |
 | `PACIENTE` | Paciente (acesso apenas ao próprio portal)      |
 
@@ -153,15 +152,15 @@ Resposta `200 OK`:
 | Método | Caminho                          | Auth                  | Descrição                                |
 |--------|----------------------------------|-----------------------|------------------------------------------|
 | GET    | `/medico/especialidades`         | Público               | Lista especialidades (valor/rótulo)      |
-| GET    | `/medico/perfil`                 | `MEDIC`, `ADMIN`      | Perfil do médico autenticado             |
-| PUT    | `/medico/perfil`                 | `MEDIC`, `ADMIN`      | Atualiza o perfil (completo)             |
-| PATCH  | `/medico/perfil`                 | `MEDIC`, `ADMIN`      | Completa/atualiza o perfil (parcial)     |
-| GET    | `/medico/estatisticas`           | `MEDIC`, `ADMIN`      | Estatísticas do mês (`?mes=yyyy-MM`)     |
-| POST   | `/medico/foto`                   | `MEDIC`, `ADMIN`      | Envia foto de perfil (multipart)         |
-| GET    | `/medico/agenda`                 | `MEDIC`, `ADMIN`      | Agenda de consultas                      |
-| POST   | `/medico/disponibilidade`        | `MEDIC`, `ADMIN`      | Adiciona janela de disponibilidade       |
-| GET    | `/medico/disponibilidade`        | `MEDIC`, `ADMIN`      | Lista disponibilidades                   |
-| DELETE | `/medico/disponibilidade/{id}`   | `MEDIC`, `ADMIN`      | Remove uma disponibilidade               |
+| GET    | `/medico/perfil`                 | `MEDIC`               | Perfil do médico autenticado             |
+| PUT    | `/medico/perfil`                 | `MEDIC`               | Atualiza o perfil (completo)             |
+| PATCH  | `/medico/perfil`                 | `MEDIC`               | Completa/atualiza o perfil (parcial)     |
+| GET    | `/medico/estatisticas`           | `MEDIC`               | Estatísticas do mês (`?mes=yyyy-MM`)     |
+| POST   | `/medico/foto`                   | `MEDIC`               | Envia foto de perfil (multipart)         |
+| GET    | `/medico/agenda`                 | `MEDIC`               | Agenda de consultas                      |
+| POST   | `/medico/disponibilidade`        | `MEDIC`               | Adiciona janela de disponibilidade       |
+| GET    | `/medico/disponibilidade`        | `MEDIC`               | Lista disponibilidades                   |
+| DELETE | `/medico/disponibilidade/{id}`   | `MEDIC`               | Remove uma disponibilidade               |
 
 **`PUT`/`PATCH /medico/perfil`** — corpo:
 
@@ -191,7 +190,7 @@ Resposta `200 OK`:
 
 | Método | Caminho               | Auth                       | Descrição                          |
 |--------|-----------------------|----------------------------|------------------------------------|
-| DELETE | `/appointments/{id}`  | `ADMIN`, `MEDIC`, `PACIENTE` | Cancela um agendamento           |
+| DELETE | `/appointments/{id}`  | `MEDIC`, `PACIENTE` | Cancela um agendamento                    |
 
 O cancelamento valida posse e antecedência no serviço: o paciente cancela a própria
 consulta (mín. 24h de antecedência); o médico/admin cancelam as suas (mín. 10h).

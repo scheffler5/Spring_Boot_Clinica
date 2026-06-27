@@ -128,7 +128,7 @@ O login é direto: CAPTCHA → senha → JWT. **Não há MFA nem envio de e-mail
         ↓ AuthenticationManager.authenticate(): BCrypt hash check
               (usa AuthorizationService.loadUserByUsername)
         ↓ IpBlockingService.registerSuccess() + TokenService.generateToken(): JWT, 2h
-        ← { token: "eyJ...", role: "ADMIN", perfilCompleto: false }
+        ← { token: "eyJ...", role: "MEDIC", perfilCompleto: false }
         (em falha de senha: registerFailure → 401 com tentativas restantes)
 
 3. Próximas requisições:
@@ -176,7 +176,7 @@ tb_users
   nome varchar(100)
   email varchar(150) UNIQUE (nullable — paciente cadastra só com login)
   password varchar
-  role varchar (ADMIN|MEDIC|PACIENTE)
+  role varchar (MEDIC|PACIENTE)
   perfil_completo boolean DEFAULT FALSE
   paciente_id uuid FK tb_patients   ← só para role=PACIENTE
   ativo boolean DEFAULT TRUE

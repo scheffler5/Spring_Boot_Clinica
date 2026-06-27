@@ -33,12 +33,11 @@ public class OpenApiConfig {
                                 ## Autenticação
                                 A maioria dos endpoints exige um token JWT no cabeçalho
                                 `Authorization: Bearer <token>`. Para obter o token, use
-                                `POST /auth/login` (médico/admin) ou autentique-se
+                                `POST /auth/login` (médico) ou autentique-se
                                 como paciente. Clique em **Authorize** e informe apenas o token
                                 (sem o prefixo `Bearer`).
 
                                 ## Papéis (roles)
-                                - `ADMIN` — administração geral (herda permissões de MEDIC)
                                 - `MEDIC` — médico
                                 - `PACIENTE` — paciente (portal próprio)
                                 """)
