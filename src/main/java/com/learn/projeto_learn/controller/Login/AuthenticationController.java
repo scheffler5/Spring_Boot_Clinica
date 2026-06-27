@@ -15,7 +15,6 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -23,11 +22,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/auth")
-@Tag(name = "Autenticação", description = "Login, registro de médicos e listagem de usuários")
+@Tag(name = "Autenticação", description = "Login e registro de médicos")
 public class AuthenticationController {
 
     @Autowired private TokenService          tokenService;
@@ -92,13 +89,6 @@ public class AuthenticationController {
         String hash = passwordEncoder.encode(data.password());
         repository.save(new Usuario(data.login(), hash, UserRole.MEDIC));
         return ResponseEntity.status(HttpStatus.CREATED).build();
-    }
-
-    @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Lista todos os usuários", description = "Somente ADMIN.")
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        return ResponseEntity.ok(repository.findAll().stream().map(UserResponseDTO::new).toList());
     }
 
     private String resolveIp(HttpServletRequest request) {

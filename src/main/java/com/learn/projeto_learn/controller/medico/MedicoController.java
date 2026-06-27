@@ -20,7 +20,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.List;
@@ -156,13 +155,4 @@ public class MedicoController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/disponibilidade/slots")
-    @PreAuthorize("hasAnyRole('MEDIC', 'ADMIN', 'PACIENTE')")
-    @Operation(summary = "Gera os horários (slots) livres de um médico em uma data")
-    public ResponseEntity<List<String>> gerarSlots(
-            @RequestParam UUID medicoId,
-            @RequestParam String data) {
-        return ResponseEntity.ok(
-                disponibilidadeService.gerarSlotsDisponiveis(medicoId, LocalDate.parse(data)));
-    }
 }
