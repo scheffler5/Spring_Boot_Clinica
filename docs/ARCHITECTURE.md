@@ -50,7 +50,7 @@ Configurações globais do Spring aplicadas transversalmente a todas as camadas.
 - **`FlywayConfig`** — habilita `baselineOnMigrate` para que as migrações rodem também em
   bancos antigos já populados.
 
-### `Infra/Security/`
+### `infra/security/`
 Infraestrutura de segurança que atua antes dos controllers.
 
 - **`RateLimitFilter`** — token bucket por IP. Auth: 40 req/min, API geral: 200 req/min. Responde 429 ao exceder.
@@ -65,7 +65,7 @@ services, define status de retorno.
 Não contém regras de negócio — apenas deserialização, validação de formato (`@Valid`),
 controle de acesso (`@PreAuthorize`) e montagem do `ResponseEntity`.
 
-Grupos: autenticação (`Login/`), `agendamento/` (cancelamento), portal do paciente
+Grupos: autenticação (`login/`), `agendamento/` (cancelamento), portal do paciente
 (`patient/`), portal do médico (`medico/`), `captcha/`, `chat/` (REST + STOMP) e
 `ImagemController`.
 

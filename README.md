@@ -72,6 +72,32 @@ Na primeira execução o Docker fará o build da imagem (~3–5 minutos).
 | Portal do paciente | http://localhost:8080/patient-login.html |
 | Documentação interativa da API (Swagger UI) | http://localhost:8080/swagger-ui.html |
 
+### 5. (Opcional) Popular o banco com dados de demonstração
+
+Com a aplicação **no ar**, o script [seed_medicos.py](seed_medicos.py) cria 4 médicos de
+exemplo — cada um com perfil completo, foto e janelas de disponibilidade — prontos para
+aparecer no marketplace do paciente.
+
+```bash
+pip install requests        # única dependência do script
+python3 seed_medicos.py     # usa http://localhost:8080 por padrão
+```
+
+Para apontar para outra URL: `python3 seed_medicos.py --base-url http://localhost:8080`.
+
+Os médicos criados (senha padrão **`Demo@1234`**):
+
+| Login | Nome | Especialidade | Cidade |
+|---|---|---|---|
+| `dr.rafael.costa` | Dr. Rafael Costa | Cardiologia | São Paulo |
+| `dr.bruno.almeida` | Dr. Bruno Almeida | Ortopedia | Rio de Janeiro |
+| `dra.ana.lima` | Dra. Ana Lima | Dermatologia | Belo Horizonte |
+| `dra.fernanda.santos` | Dra. Fernanda Santos | Psiquiatria | Porto Alegre |
+
+> O script é **idempotente**: se um médico já existe, ele segue em frente sem duplicar.
+> As fotos vêm da pasta [Imagens/](Imagens/). Para começar do zero antes de popular,
+> rode `docker compose down -v && docker compose up -d` (limpa Postgres + Mongo).
+
 ## Portas
 
 | Porta | Serviço | Interface |
@@ -115,7 +141,7 @@ Detalhes em [TESTING.md](docs/TESTING.md).
 src/main/java/com/learn/projeto_learn/
 ├── config/           Configurações globais (Security, Jackson, OpenAPI, WebSocket, Flyway)
 ├── controller/       Endpoints HTTP (REST) e WebSocket
-│   ├── Login/        Autenticação (login, registro de médico)
+│   ├── login/        Autenticação (login, registro de médico)
 │   ├── patient/      Portal público do paciente (auto-cadastro, marketplace, agenda)
 │   ├── medico/       Portal do médico (perfil, disponibilidade, estatísticas)
 │   ├── agendamento/  Cancelamento de agendamentos
@@ -124,7 +150,7 @@ src/main/java/com/learn/projeto_learn/
 │   └── ImagemController  Servir imagens/anexos
 ├── dto/              Objetos de transferência (records request/response)
 ├── exception/        BusinessException + handler global
-├── Infra/Security/   JWT, rate limiting, bloqueio de IP, filtro de segurança
+├── infra/security/   JWT, rate limiting, bloqueio de IP, filtro de segurança
 ├── model/            Entidades JPA (PostgreSQL) e documentos MongoDB (chat)
 ├── repository/       Interfaces Spring Data (JPA + MongoDB)
 └── service/          Regras de negócio
